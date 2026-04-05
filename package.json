@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "nuxt build && prisma migrate deploy && prisma db seed",
+    "build": "find node_modules -name 'esbuild' -type f -exec chmod +x {} + && nuxt build && prisma migrate deploy && prisma db seed",
     "dev": "nuxt dev",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
