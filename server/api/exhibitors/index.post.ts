@@ -1,4 +1,5 @@
 import { prisma } from "../../../lib/prisma";
+import * as Sentry from "@sentry/nuxt";
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);
@@ -60,19 +61,28 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  // Buat exhibitor tanpa assign booth spesifik (admin yang assign nanti)
-  const exhibitor = await prisma.exhibitors.create({
-    data: {
-      companyName,
-      picName,
-      email,
-      phone,
-      productType,
-      boothTypeId,
-      notes: notes || null,
-      isActive: isActive ?? true,
-    },
-  });
+  try {
+    // Buat exhibitor tanpa assign booth spesifik (admin yang assign nanti)
+    const exhibitor = await prisma.exhibitors.create({
+      data: {
+        companyName,
+        picName,
+        email,
+        phone,
+        productType,
+        boothTypeId,
+        notes: notes || null,
+        isActive: isActive ?? true,
+      },
+    });
 
-  return exhibitor;
+    return exhibitor;
+  } catch (error) {
+    Sentry.captureException(error);
+    throw createError({
+      statusCode: 500,
+      statusMessage: "Internal Server Error",
+      message: "Terjadi kesalahan saat menyimpan data exhibitor.",
+    });
+  }
 });

@@ -1,4 +1,5 @@
 import { prisma } from "../../../lib/prisma";
+import * as Sentry from "@sentry/nuxt";
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);
@@ -72,7 +73,16 @@ export default defineEventHandler(async (event) => {
     }),
   );
 
-  const [exhibitor] = await prisma.$transaction(transactions);
+  try {
+    const [exhibitor] = await prisma.$transaction(transactions);
 
-  return exhibitor;
+    return exhibitor;
+  } catch (error) {
+    Sentry.captureException(error);
+    throw createError({
+      statusCode: 500,
+      statusMessage: "Internal Server Error",
+      message: "Terjadi kesalahan saat memperbarui data exhibitor.",
+    });
+  }
 });

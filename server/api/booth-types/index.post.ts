@@ -1,4 +1,5 @@
 import { prisma } from "../../../lib/prisma";
+import * as Sentry from "@sentry/nuxt";
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);
@@ -13,14 +14,23 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  const boothType = await prisma.boothTypes.create({
-    data: {
-      name,
-      size: Number(size),
-      price: price != null ? Number(price) : null,
-      isActive: isActive ?? true,
-    },
-  });
+  try {
+    const boothType = await prisma.boothTypes.create({
+      data: {
+        name,
+        size: Number(size),
+        price: price != null ? Number(price) : null,
+        isActive: isActive ?? true,
+      },
+    });
 
-  return boothType;
+    return boothType;
+  } catch (error) {
+    Sentry.captureException(error);
+    throw createError({
+      statusCode: 500,
+      statusMessage: "Internal Server Error",
+      message: "Terjadi kesalahan saat menyimpan tipe booth.",
+    });
+  }
 });

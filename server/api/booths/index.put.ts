@@ -1,4 +1,5 @@
 import { prisma } from "../../../lib/prisma";
+import * as Sentry from "@sentry/nuxt";
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);
@@ -19,10 +20,19 @@ export default defineEventHandler(async (event) => {
   if (isBooked !== undefined) dataToUpdate.isBooked = Boolean(isBooked);
   if (isActive !== undefined) dataToUpdate.isActive = Boolean(isActive);
 
-  const booth = await prisma.booths.update({
-    where: { id },
-    data: dataToUpdate,
-  });
+  try {
+    const booth = await prisma.booths.update({
+      where: { id },
+      data: dataToUpdate,
+    });
 
-  return booth;
+    return booth;
+  } catch (error) {
+    Sentry.captureException(error);
+    throw createError({
+      statusCode: 500,
+      statusMessage: "Internal Server Error",
+      message: "Terjadi kesalahan saat memperbarui data booth.",
+    });
+  }
 });

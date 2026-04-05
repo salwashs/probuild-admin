@@ -3,7 +3,8 @@ export default defineNuxtConfig({
   modules: [
     '@nuxt/eslint',
     '@nuxt/ui',
-    '@vueuse/nuxt'
+    '@vueuse/nuxt',
+    '@sentry/nuxt/module'
   ],
 
   devtools: {
@@ -27,5 +28,14 @@ export default defineNuxtConfig({
         braceStyle: '1tbs'
       }
     }
+  },
+
+  sentry: {
+    org: 'none-m5k',
+    project: 'probuild-admin'
+  },
+
+  sourcemap: {
+    client: 'hidden'
   }
 })

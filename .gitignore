@@ -27,3 +27,6 @@ logs
 .vscode
 
 /generated/prisma
+
+# Sentry Config File
+.env.sentry-build-plugin
