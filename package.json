@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "find node_modules -name 'esbuild' -type f -exec chmod +x {} + && prisma generate && nuxt build && prisma migrate deploy && prisma db seed",
+    "build:dev": "nuxt build",
     "dev": "nuxt dev",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
