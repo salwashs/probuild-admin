@@ -1,4 +1,4 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
+// nuxt.config.ts
 export default defineNuxtConfig({
   modules: ["@nuxt/eslint", "@nuxt/ui", "@vueuse/nuxt", "@sentry/nuxt/module"],
 
@@ -26,13 +26,9 @@ export default defineNuxtConfig({
   },
 
   sentry: {
-    org: "none-m5k",
-    project: "probuild-admin",
     autoInjectServerSentry: "top-level-import",
+    // Hapus sourceMapsUploadOptions sama sekali
   },
 
-  sourcemap: {
-    client: "hidden",
-    server: false,
-  },
+  sourcemap: false, // ← set false langsung, bukan object
 });
