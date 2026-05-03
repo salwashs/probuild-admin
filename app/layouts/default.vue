@@ -6,60 +6,63 @@ const toast = useToast()
 
 const open = ref(false)
 
-const links = [[{
-  label: 'Home',
-  icon: 'i-lucide-house',
-  to: '/',
-  onSelect: () => {
-    open.value = false
-  }
-},
-// {
-//   label: 'Inbox',
-//   icon: 'i-lucide-inbox',
-//   to: '/inbox',
-//   badge: '4',
-//   onSelect: () => {
-//     open.value = false
-//   }
-// }, 
-// {
-//   label: 'Customers',
-//   icon: 'i-lucide-users',
-//   to: '/customers',
-//   onSelect: () => {
-//     open.value = false
-//   }
-// }, 
-{
-  label: 'Visitors',
-  icon: 'i-lucide-users',
-  to: '/visitors',
-  onSelect: () => {
-    open.value = false
-  }
-}, {
-  label: 'Booth',
-  icon: 'i-lucide-land-plot',
-  to: '/booth',
-  onSelect: () => {
-    open.value = false
-  }
-}, {
-  label: 'Kelola Booth',
-  icon: 'i-lucide-layout-grid',
-  to: '/booths',
-  onSelect: () => {
-    open.value = false
-  }
-}, {
-  label: 'Exhibitors',
-  icon: 'i-lucide-users-round',
-  to: '/exhibitors',
-  onSelect: () => {
-    open.value = false
-  }
-},
+const links = [[
+  //   {
+  //   label: 'Home',
+  //   icon: 'i-lucide-house',
+  //   to: '/',
+  //   onSelect: () => {
+  //     open.value = false
+  //   }
+  // },
+  // {
+  //   label: 'Inbox',
+  //   icon: 'i-lucide-inbox',
+  //   to: '/inbox',
+  //   badge: '4',
+  //   onSelect: () => {
+  //     open.value = false
+  //   }
+  // }, 
+  // {
+  //   label: 'Customers',
+  //   icon: 'i-lucide-users',
+  //   to: '/customers',
+  //   onSelect: () => {
+  //     open.value = false
+  //   }
+  // }, 
+  {
+    label: 'Visitors',
+    icon: 'i-lucide-users',
+    to: '/visitors',
+    onSelect: () => {
+      open.value = false
+    }
+  },
+  // {
+  //   label: 'Booth',
+  //   icon: 'i-lucide-land-plot',
+  //   to: '/booth',
+  //   onSelect: () => {
+  //     open.value = false
+  //   }
+  // }, 
+  {
+    label: 'Kelola Booth',
+    icon: 'i-lucide-layout-grid',
+    to: '/booths',
+    onSelect: () => {
+      open.value = false
+    }
+  }, {
+    label: 'Exhibitors',
+    icon: 'i-lucide-users-round',
+    to: '/exhibitors',
+    onSelect: () => {
+      open.value = false
+    }
+  },
   // {
   //   label: 'Settings',
   //   to: '/settings',

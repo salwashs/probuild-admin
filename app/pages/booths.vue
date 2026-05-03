@@ -35,7 +35,7 @@ const saving = ref(false)
 
 const emptyForm = {
     id: '',
-    number: '' as string | number,
+    number: '',
     boothTypeId: '',
     isBooked: false,
     isActive: true
