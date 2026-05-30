@@ -7,14 +7,14 @@ const toast = useToast()
 const open = ref(false)
 
 const links = [[
-  //   {
-  //   label: 'Home',
-  //   icon: 'i-lucide-house',
-  //   to: '/',
-  //   onSelect: () => {
-  //     open.value = false
-  //   }
-  // },
+  {
+    label: 'Dashboard',
+    icon: 'i-lucide-layout-dashboard',
+    to: '/',
+    onSelect: () => {
+      open.value = false
+    }
+  },
   // {
   //   label: 'Inbox',
   //   icon: 'i-lucide-inbox',
@@ -48,17 +48,32 @@ const links = [[
   //     open.value = false
   //   }
   // }, 
+  // {
+  //   label: 'Kelola Booth',
+  //   icon: 'i-lucide-layout-grid',
+  //   to: '/booths',
+  //   onSelect: () => {
+  //     open.value = false
+  //   }
+  // }, 
   {
-    label: 'Kelola Booth',
-    icon: 'i-lucide-layout-grid',
-    to: '/booths',
+    label: 'Exhibitors',
+    icon: 'i-lucide-users-round',
+    to: '/exhibitors',
     onSelect: () => {
       open.value = false
     }
   }, {
-    label: 'Exhibitors',
-    icon: 'i-lucide-users-round',
-    to: '/exhibitors',
+    label: 'Kelola Role',
+    icon: 'i-lucide-shield',
+    to: '/roles',
+    onSelect: () => {
+      open.value = false
+    }
+  }, {
+    label: 'Kelola User',
+    icon: 'i-lucide-user-cog',
+    to: '/users',
     onSelect: () => {
       open.value = false
     }
@@ -126,43 +141,41 @@ const groups = computed(() => [{
   }]
 }])
 
-onMounted(async () => {
-  const cookie = useCookie('cookie-consent')
-  if (cookie.value === 'accepted') {
-    return
-  }
+// onMounted(async () => {
+//   const cookie = useCookie('cookie-consent')
+//   if (cookie.value === 'accepted') {
+//     return
+//   }
 
-  toast.add({
-    title: 'We use first-party cookies to enhance your experience on our website.',
-    duration: 0,
-    close: false,
-    actions: [{
-      label: 'Accept',
-      color: 'neutral',
-      variant: 'outline',
-      onClick: () => {
-        cookie.value = 'accepted'
-      }
-    }, {
-      label: 'Opt out',
-      color: 'neutral',
-      variant: 'ghost'
-    }]
-  })
-})
+//   toast.add({
+//     title: 'We use first-party cookies to enhance your experience on our website.',
+//     duration: 0,
+//     close: false,
+//     actions: [{
+//       label: 'Accept',
+//       color: 'neutral',
+//       variant: 'outline',
+//       onClick: () => {
+//         cookie.value = 'accepted'
+//       }
+//     }, {
+//       label: 'Opt out',
+//       color: 'neutral',
+//       variant: 'ghost'
+//     }]
+//   })
+// })
 </script>
 
 <template>
   <UDashboardGroup unit="rem">
-    <UDashboardSidebar id="default" v-model:open="open" collapsible resizable class="bg-elevated/25"
+    <UDashboardSidebar id="default" v-model:open="open" resizable class="bg-elevated/25"
       :ui="{ footer: 'lg:border-t lg:border-default' }">
-      <template #header="{ collapsed }">
-        <TeamsMenu :collapsed="collapsed" />
+      <template #header>
+        <TeamsMenu />
       </template>
 
       <template #default="{ collapsed }">
-        <UDashboardSearchButton :collapsed="collapsed" class="bg-transparent ring-default" />
-
         <UNavigationMenu :collapsed="collapsed" :items="links[0]" orientation="vertical" tooltip popover />
 
         <UNavigationMenu :collapsed="collapsed" :items="links[1]" orientation="vertical" tooltip class="mt-auto" />
@@ -177,6 +190,6 @@ onMounted(async () => {
 
     <slot />
 
-    <NotificationsSlideover />
+    <!-- <NotificationsSlideover /> -->
   </UDashboardGroup>
 </template>

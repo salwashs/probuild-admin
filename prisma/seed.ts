@@ -1,4 +1,5 @@
 import "dotenv/config";
+import bcrypt from "bcryptjs";
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 import { PrismaClient } from "../generated/prisma/client";
 
@@ -1102,6 +1103,54 @@ async function main() {
       `  - ${type.name} (${type.size} m², Rp ${type.price.toLocaleString("id-ID")}): ${count} booth`,
     );
   }
+
+  const rolesData = [
+    { name: "Super Admin", description: "Super Administrator" },
+    { name: "Admin", description: "Administrator" },
+  ];
+
+  console.log("\n👥 Seeding roles and users...");
+  for (const r of rolesData) {
+    let role = await prisma.roles.findFirst({ where: { name: r.name } });
+    if (!role) {
+      role = await prisma.roles.create({ data: r });
+    }
+  }
+
+  const superAdminRole = await prisma.roles.findFirst({ where: { name: "Super Admin" } });
+  const adminRole = await prisma.roles.findFirst({ where: { name: "Admin" } });
+
+  const hashedPassword = bcrypt.hashSync("password", 10);
+
+  const usersData = [
+    {
+      email: "salwa2105salsabila@gmail.com",
+      name: "Salwa",
+      password: hashedPassword,
+      roleId: superAdminRole!.id,
+    },
+    {
+      email: "admin@probuildintim.com",
+      name: "Admin",
+      password: hashedPassword,
+      roleId: adminRole!.id,
+    },
+    {
+      email: "abadi@probuildintim.com",
+      name: "Abadi",
+      password: hashedPassword,
+      roleId: superAdminRole!.id,
+    },
+  ];
+
+  for (const u of usersData) {
+    await prisma.users.upsert({
+      where: { email: u.email },
+      update: { password: u.password, roleId: u.roleId },
+      create: u,
+    });
+  }
+  console.log(`  ✅ ${usersData.length} users berhasil disiapkan`);
 
   console.log(`\n🎉 Seeding selesai!`);
   console.log(`   - ${boothTypeData.length} tipe booth`);

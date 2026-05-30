@@ -1,98 +1,67 @@
 <script setup lang="ts">
-import type { Period, Range, Stat } from '~/types'
-
-const props = defineProps<{
-  period: Period
-  range: Range
-}>()
-
-function formatCurrency(value: number): string {
-  return value.toLocaleString('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 0
-  })
+interface DashboardStats {
+  visitors: number
+  exhibitors: number
+  availableBooths: number
 }
 
-const baseStats = [{
-  title: 'Customers',
-  icon: 'i-lucide-users',
-  minValue: 400,
-  maxValue: 1000,
-  minVariation: -15,
-  maxVariation: 25
-}, {
-  title: 'Conversions',
-  icon: 'i-lucide-chart-pie',
-  minValue: 1000,
-  maxValue: 2000,
-  minVariation: -10,
-  maxVariation: 20
-}, {
-  title: 'Revenue',
-  icon: 'i-lucide-circle-dollar-sign',
-  minValue: 200000,
-  maxValue: 500000,
-  minVariation: -20,
-  maxVariation: 30,
-  formatter: formatCurrency
-}, {
-  title: 'Orders',
-  icon: 'i-lucide-shopping-cart',
-  minValue: 100,
-  maxValue: 300,
-  minVariation: -5,
-  maxVariation: 15
-}]
+const { data: stats, status } = await useFetch<DashboardStats>('/api/dashboard/stats')
 
-const { data: stats } = await useAsyncData<Stat[]>('stats', async () => {
-  return baseStats.map((stat) => {
-    const value = randomInt(stat.minValue, stat.maxValue)
-    const variation = randomInt(stat.minVariation, stat.maxVariation)
+const cards = computed(() => {
+  if (!stats.value) return []
 
-    return {
-      title: stat.title,
-      icon: stat.icon,
-      value: stat.formatter ? stat.formatter(value) : value,
-      variation
+  return [
+    {
+      title: 'Visitor Terdaftar',
+      icon: 'i-lucide-users',
+      value: stats.value.visitors,
+      color: 'primary' as const,
+      description: 'Total visitor yang telah mendaftar'
+    },
+    {
+      title: 'Exhibitor Terdaftar',
+      icon: 'i-lucide-building-2',
+      value: stats.value.exhibitors,
+      color: 'secondary' as const,
+      description: 'Total exhibitor yang telah mendaftar'
+    },
+    {
+      title: 'Booth Tersedia',
+      icon: 'i-lucide-layout-grid',
+      value: stats.value.availableBooths,
+      color: 'success' as const,
+      description: 'Jumlah booth yang masih tersedia'
     }
-  })
-}, {
-  watch: [() => props.period, () => props.range],
-  default: () => []
+  ]
 })
 </script>
 
 <template>
-  <UPageGrid class="lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-px">
+  <UPageGrid class="lg:grid-cols-3 gap-4 sm:gap-6">
     <UPageCard
-      v-for="(stat, index) in stats"
+      v-for="(card, index) in cards"
       :key="index"
-      :icon="stat.icon"
-      :title="stat.title"
-      to="/customers"
+      :icon="card.icon"
+      :title="card.title"
       variant="subtle"
       :ui="{
-        container: 'gap-y-1.5',
+        container: 'gap-y-2',
         wrapper: 'items-start',
         leading: 'p-2.5 rounded-full bg-primary/10 ring ring-inset ring-primary/25 flex-col',
-        title: 'font-normal text-muted text-xs uppercase'
+        title: 'font-normal text-muted text-xs uppercase tracking-wide',
+        description: 'text-sm text-muted'
       }"
-      class="lg:rounded-none first:rounded-l-lg last:rounded-r-lg hover:z-1"
+      class="hover:shadow-lg transition-shadow duration-200"
     >
-      <div class="flex items-center gap-2">
-        <span class="text-2xl font-semibold text-highlighted">
-          {{ stat.value }}
+      <div class="flex items-center gap-3">
+        <span class="text-3xl font-bold text-highlighted">
+          {{ card.value.toLocaleString('id-ID') }}
         </span>
-
-        <UBadge
-          :color="stat.variation > 0 ? 'success' : 'error'"
-          variant="subtle"
-          class="text-xs"
-        >
-          {{ stat.variation > 0 ? '+' : '' }}{{ stat.variation }}%
-        </UBadge>
       </div>
+
+      <template #description>
+        <span class="text-sm text-muted">{{ card.description }}</span>
+      </template>
     </UPageCard>
   </UPageGrid>
 </template>
