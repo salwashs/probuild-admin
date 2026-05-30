@@ -81,6 +81,18 @@ const columns: TableColumn<any>[] = [
                 'ariaLabel': 'Select row'
             })
     },
+        {
+        accessorKey: 'createdAt',
+        header: 'Tanggal',
+        cell: ({ row }) => {
+            if (!row.original.createdAt) return '-'
+            return new Intl.DateTimeFormat('id-ID', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            }).format(new Date(row.original.createdAt))
+        }
+    },
     {
         accessorKey: 'companyName',
         header: 'Nama Perusahaan'
