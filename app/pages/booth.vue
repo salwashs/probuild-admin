@@ -10,41 +10,13 @@ function b(num: number, available = false, catIdx = 1) {
 
 
 const boothCategory = [
-    {
-        id: 1,
-        name: 'Standard',
-        color: 'gray'
-    },
-    {
-        id: 2,
-        name: 'Platinum',
-        color: 'amber'
-    },
-    {
-        id: 3,
-        name: 'Gold',
-        color: 'yellow'
-    },
-    {
-        id: 4,
-        name: 'Silver',
-        color: 'slate'
-    },
-    {
-        id: 5,
-        name: 'Media',
-        color: 'emerald'
-    },
-    {
-        id: 6,
-        name: 'Premium',
-        color: 'green'
-    },
-    {
-        id: 7,
-        name: 'Elite',
-        color: 'blue'
-    },
+    { id: 1, name: 'Standard', color: 'gray', hex: '#4B5563' },
+    { id: 2, name: 'Platinum', color: 'amber', hex: '#D97706' },
+    { id: 3, name: 'Gold', color: 'yellow', hex: '#CA8A04' },
+    { id: 4, name: 'Silver', color: 'slate', hex: '#475569' },
+    { id: 5, name: 'Media', color: 'emerald', hex: '#059669' },
+    { id: 6, name: 'Premium', color: 'green', hex: '#16A34A' },
+    { id: 7, name: 'Elite', color: 'blue', hex: '#2563EB' },
 ]
 
 const data = ref([
@@ -169,7 +141,8 @@ const data = ref([
                         <div v-if="data[1]?.boothPosition == 'left' && data[1]?.rows?.[0]"
                             class="flex flex-col-reverse gap-1">
                             <div v-for="(boothLeft, indexLeft) in data[1].rows[0].booths" :key="indexLeft"
-                                :class="`outline bg-${boothLeft.category.color}-600 size-7.5 flex justify-center items-center rounded-sm text-xs`">
+                                class="outline size-7.5 flex justify-center items-center rounded-sm text-xs"
+                                :style="{ backgroundColor: boothLeft.category.hex }">
                                 {{ boothLeft.boothNumber }}</div>
 
                         </div>
@@ -185,7 +158,8 @@ const data = ref([
                             <!-- Top row -->
                             <div v-if="data[0]?.boothPosition == 'top' && data[0]?.rows?.[0]" class="flex gap-1 h-fit">
                                 <div v-for="booth, index in data[0]?.rows?.[0]?.booths" :key="index"
-                                    :class="`outline bg-${booth.category.color}-600 size-7.5 flex justify-center items-center rounded-sm text-xs cursor-pointer`">
+                                    class="outline size-7.5 flex justify-center items-center rounded-sm text-xs cursor-pointer"
+                                    :style="{ backgroundColor: booth.category.hex }">
                                     {{ booth.boothNumber }}
                                 </div>
                             </div>
@@ -215,8 +189,8 @@ const data = ref([
                                                     v-for="(booth, i) in item.booths.slice(0, item.booths.length / 2)"
                                                     :key="'l-' + rgIndex + '-' + itemIndex + '-' + i">
                                                     <div v-if="booth"
-                                                        :class="`outline bg-${booth.category.color}-600 size-7.5 flex justify-center items-center rounded-sm text-xs cursor-pointer col-start-1`"
-                                                        :style="`grid-row:${i + 1}`">
+                                                        class="outline size-7.5 flex justify-center items-center rounded-sm text-xs cursor-pointer col-start-1"
+                                                        :style="`grid-row:${i + 1}; background-color: ${booth.category.hex}`">
                                                         {{ booth.boothNumber }}
                                                     </div>
                                                 </template>
@@ -225,8 +199,8 @@ const data = ref([
                                                     v-for="(booth, i) in item.booths.slice(item.booths.length / 2)"
                                                     :key="'r-' + rgIndex + '-' + itemIndex + '-' + i">
                                                     <div v-if="booth"
-                                                        :class="`outline bg-${booth.category.color}-600 size-7.5 flex justify-center items-center rounded-sm text-xs cursor-pointer col-start-2`"
-                                                        :style="`grid-row:${item.booths.length / 2 - i}`">
+                                                        class="outline size-7.5 flex justify-center items-center rounded-sm text-xs cursor-pointer col-start-2"
+                                                        :style="`grid-row:${item.booths.length / 2 - i}; background-color: ${booth.category.hex}`">
                                                         {{ booth.boothNumber }}
                                                     </div>
                                                 </template>
@@ -241,7 +215,8 @@ const data = ref([
                             <div v-if="data[4]?.boothPosition == 'right' && data[4]?.rows?.[0]"
                                 class="flex flex-col-reverse gap-1 items-end">
                                 <div v-for="booth, index in data[4]?.rows?.[0]?.booths" :key="index"
-                                    :class="`outline bg-${booth.category.color}-600 size-7.5 flex justify-center items-center rounded-sm text-xs cursor-pointer`">
+                                    class="outline size-7.5 flex justify-center items-center rounded-sm text-xs cursor-pointer"
+                                    :style="{ backgroundColor: booth.category.hex }">
                                     {{ booth.boothNumber }}
                                 </div>
                             </div>
@@ -251,12 +226,14 @@ const data = ref([
                                 class="flex h-fit items-end mt-1">
                                 <div class="flex gap-1 pr-1">
                                     <div v-for="booth, index in data[3]?.rows?.[0]?.booths" :key="index"
-                                        :class="`outline bg-${booth.category.color}-600 size-7.5 flex justify-center items-center rounded-sm text-xs cursor-pointer`">
+                                        class="outline size-7.5 flex justify-center items-center rounded-sm text-xs cursor-pointer"
+                                        :style="{ backgroundColor: booth.category.hex }">
                                         {{ booth.boothNumber }}
                                     </div>
                                 </div>
                                 <div v-if="data[3]?.cornerData"
-                                    :class="`outline bg-${data[3].cornerData.category.color}-400 h-7.5 flex-1 flex justify-center items-center rounded-sm text-xs cursor-pointer min-w-[60px] ml-1`">
+                                    class="outline h-7.5 flex-1 flex justify-center items-center rounded-sm text-xs cursor-pointer min-w-[60px] ml-1"
+                                    :style="{ backgroundColor: data[3].cornerData.category.hex }">
                                     {{ data[3].cornerData.boothNumber }}
                                 </div>
                             </div>

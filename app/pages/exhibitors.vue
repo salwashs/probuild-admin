@@ -107,33 +107,33 @@ const columns: TableColumn<any>[] = [
         header: 'Tipe Booth',
         cell: ({ row }) => row.original.boothType?.name || '-'
     },
-    {
-        id: 'boothNumber',
-        accessorFn: (row) => row.booths?.number,
-        header: ({ column }) => {
-            const isSorted = column.getIsSorted()
+    // {
+    //     id: 'boothNumber',
+    //     accessorFn: (row) => row.booths?.number,
+    //     header: ({ column }) => {
+    //         const isSorted = column.getIsSorted()
 
-            return h(UButton, {
-                color: 'neutral',
-                variant: 'ghost',
-                label: 'Nomor Booth',
-                icon: isSorted
-                    ? isSorted === 'asc'
-                        ? 'i-lucide-arrow-up-narrow-wide'
-                        : 'i-lucide-arrow-down-wide-narrow'
-                    : 'i-lucide-arrow-up-down',
-                class: '-mx-2.5',
-                onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
-            })
-        },
-        cell: ({ row }) => {
-            const boothNumber = row.original.booth?.number
-            if (boothNumber) {
-                return h('span', {}, `#${boothNumber}`)
-            }
-            return h(UBadge, { color: 'warning', variant: 'subtle' }, () => 'Belum diassign')
-        }
-    },
+    //         return h(UButton, {
+    //             color: 'neutral',
+    //             variant: 'ghost',
+    //             label: 'Nomor Booth',
+    //             icon: isSorted
+    //                 ? isSorted === 'asc'
+    //                     ? 'i-lucide-arrow-up-narrow-wide'
+    //                     : 'i-lucide-arrow-down-wide-narrow'
+    //                 : 'i-lucide-arrow-up-down',
+    //             class: '-mx-2.5',
+    //             onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
+    //         })
+    //     },
+    //     cell: ({ row }) => {
+    //         const boothNumber = row.original.booth?.number
+    //         if (boothNumber) {
+    //             return h('span', {}, `#${boothNumber}`)
+    //         }
+    //         return h(UBadge, { color: 'warning', variant: 'subtle' }, () => 'Belum diassign')
+    //     }
+    // },
     {
         id: 'actions',
         cell: ({ row }) => {
@@ -220,8 +220,8 @@ const pagination = ref({
                             }
                         }))
                         " :content="{ align: 'end' }">
-                        <UButton label="Display" color="neutral" variant="outline"
-                            trailing-icon="i-lucide-settings-2" />
+                        <!-- <UButton label="Display" color="neutral" variant="outline"
+                            trailing-icon="i-lucide-settings-2" /> -->
                     </UDropdownMenu>
                 </div>
             </div>

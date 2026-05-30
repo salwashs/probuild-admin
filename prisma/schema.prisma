@@ -7,30 +7,54 @@ datasource db {
   provider = "mysql"
 }
 
+model Histories {
+  id          String   @id @default(uuid())
+  description String   @db.VarChar(255)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Roles {
+  id          String   @id @default(uuid())
+  name        String   @db.VarChar(255)
+  description String?  @db.VarChar(255)
+  users       Users[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 model Users {
-  id       String  @id @default(uuid())
-  email    String  @unique(map: "email") @db.VarChar(255)
-  name     String? @db.VarChar(255)
-  password String  @db.VarChar(255)
+  id        String   @id @default(uuid())
+  email     String   @unique(map: "email") @db.VarChar(255)
+  name      String?  @db.VarChar(255)
+  password  String   @db.VarChar(255)
+  roleId    String   @db.VarChar(255)
+  role      Roles    @relation(fields: [roleId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Visitors {
-  id       String  @id @default(uuid())
-  fullName String  @db.VarChar(255)
-  email    String  @db.VarChar(255)
-  phone    String  @db.VarChar(255)
-  company  String  @db.VarChar(255)
-  position String? @db.VarChar(255)
+  id        String   @id @default(uuid())
+  fullName  String   @db.VarChar(255)
+  email     String   @db.VarChar(255)
+  phone     String   @db.VarChar(255)
+  company   String   @db.VarChar(255)
+  position  String?  @db.VarChar(255)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model BoothTypes {
-  id       String       @id @default(uuid())
-  name     String       @db.VarChar(255)
-  size     Int
-  price    Float?
-  isActive Boolean      @default(true)
-  booths   Booths[]
+  id         String       @id @default(uuid())
+  name       String       @db.VarChar(255)
+  size       Int
+  price      Float?
+  isActive   Boolean      @default(true)
+  booths     Booths[]
   exhibitors Exhibitors[]
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
 }
 
 model Booths {
@@ -41,19 +65,23 @@ model Booths {
   isBooked    Boolean      @default(false)
   isActive    Boolean      @default(true)
   exhibitors  Exhibitors[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 }
 
 model Exhibitors {
-  id          String      @id @default(uuid())
-  companyName String      @db.VarChar(255)
-  picName     String      @db.VarChar(255)
-  email       String      @db.VarChar(255)
-  phone       String      @db.VarChar(255)
-  notes       String?     @db.VarChar(255)
-  productType String      @db.VarChar(255)
-  boothTypeId String      @db.VarChar(255) // Tipe booth yang diinginkan (dipilih oleh exhibitor)
-  boothType   BoothTypes  @relation(fields: [boothTypeId], references: [id])
-  boothId     String?     @db.VarChar(255) // Booth spesifik (diassign oleh admin)
-  booth       Booths?     @relation(fields: [boothId], references: [id])
-  isActive    Boolean     @default(true)
+  id          String     @id @default(uuid())
+  companyName String     @db.VarChar(255)
+  picName     String     @db.VarChar(255)
+  email       String     @db.VarChar(255)
+  phone       String     @db.VarChar(255)
+  notes       String?    @db.VarChar(255)
+  productType String     @db.VarChar(255)
+  boothTypeId String     @db.VarChar(255) // Tipe booth yang diinginkan (dipilih oleh exhibitor)
+  boothType   BoothTypes @relation(fields: [boothTypeId], references: [id])
+  boothId     String?    @db.VarChar(255) // Booth spesifik (diassign oleh admin)
+  booth       Booths?    @relation(fields: [boothId], references: [id])
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }
