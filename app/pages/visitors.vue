@@ -49,6 +49,18 @@ const columns: TableColumn<any>[] = [
         cell: ({ row }) => row.index + 1
     },
     {
+        accessorKey: 'createdAt',
+        header: 'Tanggal',
+        cell: ({ row }) => {
+            if (!row.original.createdAt) return '-'
+            return new Intl.DateTimeFormat('id-ID', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            }).format(new Date(row.original.createdAt))
+        }
+    },
+    {
         accessorKey: 'fullName',
         header: 'Nama Lengkap'
     },
@@ -146,8 +158,8 @@ const pagination = ref({
                             }
                         }))
                         " :content="{ align: 'end' }">
-                        <UButton label="Display" color="neutral" variant="outline"
-                            trailing-icon="i-lucide-settings-2" />
+                        <!-- <UButton label="Display" color="neutral" variant="outline"
+                            trailing-icon="i-lucide-settings-2" /> -->
                     </UDropdownMenu>
                 </div>
             </div>
