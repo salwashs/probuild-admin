@@ -1,39 +1,36 @@
 import * as Sentry from "@sentry/nuxt";
 import {
   createVisitorForEvent,
-  flattenVisitor,
   getEventWithFields,
   visitorHttpError,
   VisitorConflictError,
   VisitorValidationError,
-} from "../../utils/validateVisitorPayload";
+} from "../utils/validateVisitorPayload";
+
+const INTIM_SLUG = "probuild-intim-2026";
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody(event);
-  const eventId = body?.eventId;
-
-  if (!eventId) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "Bad Request",
-      message: "eventId is required",
-    });
-  }
+  const body = await readBody(event).catch(() => ({}));
 
   try {
-    const eventRecord = await getEventWithFields({ id: eventId });
+    const eventRecord = await getEventWithFields({ slug: INTIM_SLUG });
 
-    if (!eventRecord) {
+    if (!eventRecord || !eventRecord.isActive) {
       throw createError({
         statusCode: 404,
         statusMessage: "Not Found",
-        message: "Event tidak ditemukan.",
+        message: "Event tidak ditemukan atau tidak aktif.",
       });
     }
 
-    const visitor = await createVisitorForEvent(eventRecord, body);
+    const visitor = await createVisitorForEvent(eventRecord, body || {});
+
     setResponseStatus(event, 201);
-    return flattenVisitor(visitor);
+    return {
+      success: true,
+      message: "Konfirmasi kehadiran tercatat.",
+      registrationId: visitor.registrationId,
+    };
   } catch (error: unknown) {
     if (
       error instanceof VisitorValidationError ||
@@ -48,7 +45,11 @@ export default defineEventHandler(async (event) => {
     throw createError({
       statusCode: 500,
       statusMessage: "Internal Server Error",
-      message: "Terjadi kesalahan saat menyimpan data visitor.",
+      message: "Terjadi kesalahan server.",
+      data: {
+        success: false,
+        message: "Terjadi kesalahan server.",
+      },
     });
   }
 });

@@ -16,7 +16,7 @@ const cards = computed(() => {
       icon: 'i-lucide-users',
       value: stats.value.visitors,
       color: 'primary' as const,
-      description: 'Total visitor yang telah mendaftar'
+      description: 'Total visitor terdaftar di semua event'
     },
     {
       title: 'Exhibitor Terdaftar',

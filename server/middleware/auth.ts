@@ -12,11 +12,14 @@ export default defineEventHandler((event) => {
     return;
   }
 
-  // Skip auth for public API endpoints (visitor/exhibitor registration from external forms)
-  const publicEndpoints = ["/api/visitors", "/api/exhibitors"];
+  // Skip auth for public API endpoints (visitor RSVP / exhibitor registration from external forms)
+  const path = url.split("?")[0];
+  const method = getMethod(event);
   const isPublicPost =
-    getMethod(event) === "POST" &&
-    publicEndpoints.some((ep) => url.startsWith(ep));
+    method === "POST" &&
+    (path === "/api/visitor-rsvp" ||
+      path.startsWith("/api/exhibitors") ||
+      /^\/api\/events\/[^/]+\/visitors$/.test(path));
   if (isPublicPost) {
     return;
   }

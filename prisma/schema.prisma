@@ -34,15 +34,63 @@ model Users {
   updatedAt DateTime @updatedAt
 }
 
+model Events {
+  id                  String            @id @default(uuid())
+  slug                String            @unique @db.VarChar(255)
+  name                String            @db.VarChar(255)
+  description         String?           @db.Text
+  registrationPrefix  String            @db.VarChar(50)
+  visitorSeq          Int               @default(0)
+  isActive            Boolean           @default(true)
+  startsAt            DateTime?
+  endsAt              DateTime?
+  fields              EventFormFields[]
+  visitors            Visitors[]
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+}
+
+model EventFormFields {
+  id             String   @id @default(uuid())
+  eventId        String   @db.VarChar(191)
+  event          Events   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  key            String   @db.VarChar(100)
+  labelId        String   @db.VarChar(255)
+  labelEn        String?  @db.VarChar(255)
+  type           String   @db.VarChar(50)
+  required       Boolean  @default(false)
+  sortOrder      Int      @default(0)
+  showInTable    Boolean  @default(false)
+  indexAs        String?  @db.VarChar(50)
+  uniquePerEvent Boolean  @default(false)
+  validation     Json?
+  options        Json?
+  conditions     Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([eventId, key])
+  @@index([eventId])
+}
+
 model Visitors {
-  id        String   @id @default(uuid())
-  fullName  String   @db.VarChar(255)
-  email     String   @db.VarChar(255)
-  phone     String   @db.VarChar(255)
-  company   String   @db.VarChar(255)
-  position  String?  @db.VarChar(255)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String    @id @default(uuid())
+  eventId        String    @db.VarChar(191)
+  event          Events    @relation(fields: [eventId], references: [id])
+  registrationId String    @unique @db.VarChar(100)
+  fullName       String?   @db.VarChar(255)
+  email          String?   @db.VarChar(255)
+  phone          String?   @db.VarChar(255)
+  identityNumber String?   @db.VarChar(50)
+  payload        Json
+  language       String    @db.Char(2)
+  submittedAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([eventId])
+  @@index([email])
+  @@index([identityNumber])
 }
 
 model BoothTypes {

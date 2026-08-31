@@ -1,27 +1,38 @@
+import { prisma } from "../../../lib/prisma";
 import * as Sentry from "@sentry/nuxt";
 import {
-  createVisitorForEvent,
   flattenVisitor,
   getEventWithFields,
   visitorHttpError,
+  updateVisitorForEvent,
   VisitorConflictError,
   VisitorValidationError,
 } from "../../utils/validateVisitorPayload";
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);
-  const eventId = body?.eventId;
+  const id = body?.id;
 
-  if (!eventId) {
+  if (!id) {
     throw createError({
       statusCode: 400,
       statusMessage: "Bad Request",
-      message: "eventId is required",
+      message: "id is required for update",
     });
   }
 
   try {
-    const eventRecord = await getEventWithFields({ id: eventId });
+    const existing = await prisma.visitors.findUnique({ where: { id } });
+
+    if (!existing) {
+      throw createError({
+        statusCode: 404,
+        statusMessage: "Not Found",
+        message: "Visitor tidak ditemukan.",
+      });
+    }
+
+    const eventRecord = await getEventWithFields({ id: existing.eventId });
 
     if (!eventRecord) {
       throw createError({
@@ -31,8 +42,7 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    const visitor = await createVisitorForEvent(eventRecord, body);
-    setResponseStatus(event, 201);
+    const visitor = await updateVisitorForEvent(id, eventRecord, body);
     return flattenVisitor(visitor);
   } catch (error: unknown) {
     if (
@@ -48,7 +58,7 @@ export default defineEventHandler(async (event) => {
     throw createError({
       statusCode: 500,
       statusMessage: "Internal Server Error",
-      message: "Terjadi kesalahan saat menyimpan data visitor.",
+      message: "Terjadi kesalahan saat memperbarui data visitor.",
     });
   }
 });

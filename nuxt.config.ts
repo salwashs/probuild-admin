@@ -16,6 +16,14 @@ export default defineNuxtConfig({
 
   compatibilityDate: "2024-07-11",
 
+  vite: {
+    server: {
+      watch: {
+        ignored: ["**/generated/**", "**/prisma/migrations/**"],
+      },
+    },
+  },
+
   eslint: {
     config: {
       stylistic: {

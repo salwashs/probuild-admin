@@ -1,27 +1,26 @@
 import * as Sentry from "@sentry/nuxt";
 import {
   createVisitorForEvent,
-  flattenVisitor,
   getEventWithFields,
   visitorHttpError,
   VisitorConflictError,
   VisitorValidationError,
-} from "../../utils/validateVisitorPayload";
+} from "../../../utils/validateVisitorPayload";
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody(event);
-  const eventId = body?.eventId;
+  const slug = getRouterParam(event, "slug");
+  const body = await readBody(event).catch(() => ({}));
 
-  if (!eventId) {
+  if (!slug) {
     throw createError({
       statusCode: 400,
       statusMessage: "Bad Request",
-      message: "eventId is required",
+      message: "Slug event wajib diisi.",
     });
   }
 
   try {
-    const eventRecord = await getEventWithFields({ id: eventId });
+    const eventRecord = await getEventWithFields({ slug });
 
     if (!eventRecord) {
       throw createError({
@@ -31,9 +30,22 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    const visitor = await createVisitorForEvent(eventRecord, body);
+    if (!eventRecord.isActive) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: "Bad Request",
+        message: "Event tidak aktif.",
+      });
+    }
+
+    const visitor = await createVisitorForEvent(eventRecord, body || {});
+
     setResponseStatus(event, 201);
-    return flattenVisitor(visitor);
+    return {
+      success: true,
+      message: "Konfirmasi kehadiran tercatat.",
+      registrationId: visitor.registrationId,
+    };
   } catch (error: unknown) {
     if (
       error instanceof VisitorValidationError ||
@@ -48,7 +60,11 @@ export default defineEventHandler(async (event) => {
     throw createError({
       statusCode: 500,
       statusMessage: "Internal Server Error",
-      message: "Terjadi kesalahan saat menyimpan data visitor.",
+      message: "Terjadi kesalahan server.",
+      data: {
+        success: false,
+        message: "Terjadi kesalahan server.",
+      },
     });
   }
 });

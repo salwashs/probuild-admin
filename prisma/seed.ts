@@ -2,6 +2,7 @@ import "dotenv/config";
 import bcrypt from "bcryptjs";
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 import { PrismaClient } from "../generated/prisma/client";
+import { INTIM_2026_EVENT, INTIM_2026_FIELDS } from "./intim-2026-fields";
 
 const adapter = new PrismaMariaDb({
   host: process.env.DB_HOST,
@@ -1152,9 +1153,57 @@ async function main() {
   }
   console.log(`  ✅ ${usersData.length} users berhasil disiapkan`);
 
+  console.log("\n📅 Seeding event ProBuild INTIM 2026...");
+  const intimEvent = await prisma.events.upsert({
+    where: { slug: INTIM_2026_EVENT.slug },
+    update: {
+      name: INTIM_2026_EVENT.name,
+      description: INTIM_2026_EVENT.description,
+      registrationPrefix: INTIM_2026_EVENT.registrationPrefix,
+      isActive: INTIM_2026_EVENT.isActive,
+    },
+    create: {
+      slug: INTIM_2026_EVENT.slug,
+      name: INTIM_2026_EVENT.name,
+      description: INTIM_2026_EVENT.description,
+      registrationPrefix: INTIM_2026_EVENT.registrationPrefix,
+      isActive: INTIM_2026_EVENT.isActive,
+    },
+  });
+
+  await prisma.eventFormFields.deleteMany({ where: { eventId: intimEvent.id } });
+  await prisma.eventFormFields.createMany({
+    data: INTIM_2026_FIELDS.map((field) => ({
+      eventId: intimEvent.id,
+      key: field.key,
+      labelId: field.labelId,
+      labelEn: field.labelEn,
+      type: field.type,
+      required: field.required,
+      sortOrder: field.sortOrder,
+      showInTable: field.showInTable,
+      indexAs: field.indexAs,
+      uniquePerEvent: field.uniquePerEvent,
+      validation:
+        "validation" in field
+          ? JSON.parse(JSON.stringify(field.validation))
+          : undefined,
+      options:
+        "options" in field
+          ? JSON.parse(JSON.stringify(field.options))
+          : undefined,
+      conditions:
+        "conditions" in field
+          ? JSON.parse(JSON.stringify(field.conditions))
+          : undefined,
+    })),
+  });
+  console.log(`  ✅ Event "${intimEvent.name}" + ${INTIM_2026_FIELDS.length} form fields`);
+
   console.log(`\n🎉 Seeding selesai!`);
   console.log(`   - ${boothTypeData.length} tipe booth`);
   console.log(`   - ${boothData.length} booth`);
+  console.log(`   - 1 event (${INTIM_2026_FIELDS.length} fields)`);
 }
 
 main()

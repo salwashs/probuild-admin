@@ -1,10 +1,18 @@
-import { prisma } from '../../../lib/prisma'
+import { prisma } from "../../../lib/prisma";
 import * as Sentry from "@sentry/nuxt";
+import { flattenVisitor } from "../../utils/validateVisitorPayload";
 
-export default defineEventHandler(async () => {
+export default defineEventHandler(async (event) => {
+  const query = getQuery(event);
+  const eventId = typeof query.eventId === "string" ? query.eventId : undefined;
+
   try {
-    const visitors = await prisma.visitors.findMany()
-    return visitors
+    const visitors = await prisma.visitors.findMany({
+      where: eventId ? { eventId } : undefined,
+      orderBy: { createdAt: "desc" },
+    });
+
+    return visitors.map(flattenVisitor);
   } catch (error) {
     Sentry.captureException(error);
     throw createError({
@@ -13,4 +21,4 @@ export default defineEventHandler(async () => {
       message: "Terjadi kesalahan saat mengambil data visitor.",
     });
   }
-})
+});
