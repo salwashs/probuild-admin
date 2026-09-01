@@ -10,7 +10,7 @@ export default defineNuxtConfig({
 
   routeRules: {
     "/api/**": {
-      cors: true,
+      // CORS handled by server/middleware/cors.ts
     },
   },
 

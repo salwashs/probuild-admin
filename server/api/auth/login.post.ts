@@ -29,10 +29,6 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event);
   const { email, password } = body;
 
-  // #region agent log
-  fetch('http://127.0.0.1:7887/ingest/876787a5-7048-4aed-a76a-643efa54c98c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'56df81'},body:JSON.stringify({sessionId:'56df81',runId:'login-debug',hypothesisId:'H1',location:'login.post.ts:entry',message:'login attempt',data:{hasEmail:Boolean(email),hasDbHost:Boolean(process.env.DB_HOST),hasDatabaseUrl:Boolean(process.env.DATABASE_URL),nodeEnv:process.env.NODE_ENV??'unset'},timestamp:Date.now()})}).catch(()=>{});
-  // #endregion
-
   if (!email || !password) {
     throw createError({
       statusCode: 400,
@@ -54,10 +50,6 @@ export default defineEventHandler(async (event) => {
         message: "Email atau password salah.",
       });
     }
-
-    // #region agent log
-    fetch('http://127.0.0.1:7887/ingest/876787a5-7048-4aed-a76a-643efa54c98c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'56df81'},body:JSON.stringify({sessionId:'56df81',runId:'login-debug',hypothesisId:'H2',location:'login.post.ts:user-found',message:'user loaded',data:{userId:user.id,hasRole:Boolean(user.role),roleId:user.roleId,passwordIsHashed:user.password?.startsWith('$2')??false},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
 
     if (!user.role) {
       throw createError({
@@ -116,9 +108,6 @@ export default defineEventHandler(async (event) => {
       },
     };
   } catch (error: any) {
-    // #region agent log
-    fetch('http://127.0.0.1:7887/ingest/876787a5-7048-4aed-a76a-643efa54c98c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'56df81'},body:JSON.stringify({sessionId:'56df81',runId:'login-debug',hypothesisId:'H3',location:'login.post.ts:catch',message:'login error',data:{statusCode:error?.statusCode??null,errorName:error?.name??'unknown',errorMessage:error?.message??String(error)},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
     if (error.statusCode) throw error;
     Sentry.captureException(error);
     throw createError({

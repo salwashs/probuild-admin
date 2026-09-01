@@ -138,9 +138,6 @@ watch(
 )
 
 function setSelect(field: FormField, value: unknown) {
-  // #region agent log
-  fetch('http://127.0.0.1:7887/ingest/876787a5-7048-4aed-a76a-643efa54c98c', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '56df81' }, body: JSON.stringify({ sessionId: '56df81', runId: 'post-fix', hypothesisId: 'H1', location: 'VisitorFormModal.vue:setSelect', message: 'setSelect invoked', data: { fieldKey: field.key, valueType: typeof value }, timestamp: Date.now() }) }).catch(() => {})
-  // #endregion
   if (value && typeof value === 'object' && 'value' in (value as Record<string, unknown>)) {
     form[field.key] = (value as { value: string }).value
     return
@@ -153,9 +150,6 @@ function optionItems(field: FormField) {
     label: opt.labelId,
     value: opt.value
   }))
-  // #region agent log
-  fetch('http://127.0.0.1:7887/ingest/876787a5-7048-4aed-a76a-643efa54c98c', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '56df81' }, body: JSON.stringify({ sessionId: '56df81', runId: 'post-fix', hypothesisId: 'H3', location: 'VisitorFormModal.vue:optionItems', message: 'optionItems invoked', data: { fieldKey: field.key, itemCount: items.length }, timestamp: Date.now() }) }).catch(() => {})
-  // #endregion
   return items
 }
 
@@ -175,10 +169,6 @@ function isChecked(field: FormField, value: string) {
 }
 
 const title = computed(() => props.visitor ? 'Edit Visitor' : 'Tambah Visitor')
-
-// #region agent log
-fetch('http://127.0.0.1:7887/ingest/876787a5-7048-4aed-a76a-643efa54c98c', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '56df81' }, body: JSON.stringify({ sessionId: '56df81', runId: 'post-fix', hypothesisId: 'H1', location: 'VisitorFormModal.vue:setup', message: 'VisitorFormModal compiled and setup ran', data: { fieldCount: props.fields.length, hasOptionItems: typeof optionItems === 'function', hasSetSelect: typeof setSelect === 'function' }, timestamp: Date.now() }) }).catch(() => {})
-// #endregion
 
 function onSubmit() {
   emit('submit', { ...form, eventId: props.eventId })
