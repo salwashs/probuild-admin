@@ -1,17 +1,7 @@
 import "dotenv/config";
 import bcrypt from "bcryptjs";
-import { PrismaMariaDb } from "@prisma/adapter-mariadb";
-import { PrismaClient } from "../generated/prisma/client";
+import { prisma } from "../lib/prisma";
 import { INTIM_2026_EVENT, INTIM_2026_FIELDS } from "./intim-2026-fields";
-
-const adapter = new PrismaMariaDb({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  connectionLimit: 5,
-});
-const prisma = new PrismaClient({ adapter });
 
 const boothTypeData = [
   {

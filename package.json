@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "find node_modules -name 'esbuild' -type f -exec chmod +x {} + && prisma generate && nuxt build && prisma migrate deploy",
+    "build": "find node_modules -name 'esbuild' -type f -exec chmod +x {} + && prisma generate && nuxt build && prisma migrate deploy && prisma db seed",
     "build:dev": "nuxt build",
     "dev": "nuxt dev",
     "preview": "nuxt preview",
@@ -11,7 +11,8 @@
     "lint": "eslint .",
     "typecheck": "nuxt typecheck",
     "prisma:generate": "dlx prisma generate",
-    "prisma:migrate": "dlx prisma migrate"
+    "prisma:migrate": "dlx prisma migrate",
+    "prisma:seed": "prisma db seed"
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.95",
