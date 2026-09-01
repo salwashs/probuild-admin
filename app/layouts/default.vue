@@ -56,14 +56,15 @@ const links = [[
   //     open.value = false
   //   }
   // }, 
+  // {
+  //   label: 'Exhibitors',
+  //   icon: 'i-lucide-users-round',
+  //   to: '/exhibitors',
+  //   onSelect: () => {
+  //     open.value = false
+  //   }
+  // }
   {
-    label: 'Exhibitors',
-    icon: 'i-lucide-users-round',
-    to: '/exhibitors',
-    onSelect: () => {
-      open.value = false
-    }
-  }, {
     label: 'Kelola Role',
     icon: 'i-lucide-shield',
     to: '/roles',

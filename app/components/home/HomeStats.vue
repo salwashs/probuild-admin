@@ -17,21 +17,22 @@ const cards = computed(() => {
       value: stats.value.visitors,
       color: 'primary' as const,
       description: 'Total visitor terdaftar di semua event'
-    },
-    {
-      title: 'Exhibitor Terdaftar',
-      icon: 'i-lucide-building-2',
-      value: stats.value.exhibitors,
-      color: 'secondary' as const,
-      description: 'Total exhibitor yang telah mendaftar'
-    },
-    {
-      title: 'Booth Tersedia',
-      icon: 'i-lucide-layout-grid',
-      value: stats.value.availableBooths,
-      color: 'success' as const,
-      description: 'Jumlah booth yang masih tersedia'
     }
+    // ,
+    // {
+    //   title: 'Exhibitor Terdaftar',
+    //   icon: 'i-lucide-building-2',
+    //   value: stats.value.exhibitors,
+    //   color: 'secondary' as const,
+    //   description: 'Total exhibitor yang telah mendaftar'
+    // }
+    // {
+    //   title: 'Booth Tersedia',
+    //   icon: 'i-lucide-layout-grid',
+    //   value: stats.value.availableBooths,
+    //   color: 'success' as const,
+    //   description: 'Jumlah booth yang masih tersedia'
+    // }
   ]
 })
 </script>
