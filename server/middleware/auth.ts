@@ -6,6 +6,7 @@ export default defineEventHandler((event) => {
   // Skip auth for: login endpoint, non-API routes, and OPTIONS preflight
   if (
     url.startsWith("/api/auth/login") ||
+    url.startsWith("/api/health") ||
     !url.startsWith("/api/") ||
     getMethod(event) === "OPTIONS"
   ) {

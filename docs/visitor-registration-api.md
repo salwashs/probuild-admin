@@ -2,6 +2,9 @@
 
 Spesifikasi endpoint untuk konfirmasi kehadiran tamu undangan resmi.
 
+> **Implementasi:** Endpoint ini tersedia sebagai `POST /api/visitor-rsvp` (alias event `probuild-intim-2026`).  
+> Dokumentasi lengkap sistem visitor dinamis: [visitor-event-api.md](./visitor-event-api.md).
+
 **Base URL (production):** `https://admin.probuildintim.com/api`  
 **Base URL (development):** `/api` (proxy Vite → admin)
 
@@ -152,17 +155,22 @@ Digunakan jika backend membatasi 1 RSVP per email/KTP:
 
 ## Backend notes
 
-- Simpan `registrationId` unik untuk referensi panitia dan bukti konfirmasi.
+- Endpoint aktif: `POST /api/visitor-rsvp` — tanpa auth, terikat event `probuild-intim-2026`.
+- Alternatif generik: `POST /api/events/probuild-intim-2026/visitors` (body sama).
+- `registrationId` unik digenerate otomatis (`RSVP-2026-00001`, …).
 - Rekomendasi: kirim notifikasi WhatsApp/email ke tamu setelah `201` (integrasi terpisah).
 - CORS: izinkan origin frontend production (`https://probuildintim.com` atau domain Hostinger).
 - Rate limiting disarankan (mis. 5 request/menit per IP).
-- Auth opsional untuk admin export; endpoint public POST tanpa token untuk form tamu.
+- Manajemen visitor admin: lihat [visitor-event-api.md](./visitor-event-api.md).
 
 ---
 
-## Database schema (suggested)
+## Database schema
 
-**Table: `visitor_rsvps`**
+Skema aktual memakai tabel `Events`, `EventFormFields`, dan `Visitors` (payload JSON).  
+Detail lengkap: [visitor-event-api.md#database-schema](./visitor-event-api.md#database-schema).
+
+**Legacy (tidak dipakai):** tabel `visitor_rsvps` di bawah ini hanya referensi desain awal.
 
 | Column | Type |
 |---|---|

@@ -1119,39 +1119,22 @@ async function main() {
   }
 
   const superAdminRole = await prisma.roles.findFirst({ where: { name: "Super Admin" } });
-  const adminRole = await prisma.roles.findFirst({ where: { name: "Admin" } });
 
   const hashedPassword = bcrypt.hashSync("password", 10);
 
-  const usersData = [
-    {
-      email: "salwa2105salsabila@gmail.com",
-      name: "Salwa",
-      password: hashedPassword,
-      roleId: superAdminRole!.id,
-    },
-    {
-      email: "admin@probuildintim.com",
-      name: "Admin",
-      password: hashedPassword,
-      roleId: adminRole!.id,
-    },
-    {
-      email: "abadi@probuildintim.com",
-      name: "Abadi",
-      password: hashedPassword,
-      roleId: superAdminRole!.id,
-    },
-  ];
+  const user = {
+    email: "admin@probuildintim.com",
+    name: "Admin",
+    password: hashedPassword,
+    roleId: superAdminRole!.id,
+  };
 
-  for (const u of usersData) {
-    await prisma.users.upsert({
-      where: { email: u.email },
-      update: { password: u.password, roleId: u.roleId },
-      create: u,
-    });
-  }
-  console.log(`  ✅ ${usersData.length} users berhasil disiapkan`);
+  await prisma.users.upsert({
+    where: { email: user.email },
+    update: { password: user.password, roleId: user.roleId, name: user.name },
+    create: user,
+  });
+  console.log(`  ✅ 1 user berhasil disiapkan (${user.email})`);
 
   console.log("\n📅 Seeding event ProBuild INTIM 2026...");
   const intimEvent = await prisma.events.upsert({
