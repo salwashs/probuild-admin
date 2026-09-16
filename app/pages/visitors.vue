@@ -3,26 +3,9 @@ import type { TableColumn } from '@nuxt/ui'
 import { upperFirst } from 'scule'
 import { getPaginationRowModel } from '@tanstack/table-core'
 import type { Row } from '@tanstack/table-core'
+import type { FormField } from '~/types/visitor-form'
 import VisitorFormModal from '~/components/visitors/VisitorFormModal.vue'
-
-type FieldOption = {
-  value: string
-  labelId: string
-  labelEn?: string
-}
-
-type FormField = {
-  key: string
-  labelId: string
-  labelEn?: string | null
-  type: string
-  required: boolean
-  sortOrder: number
-  showInTable: boolean
-  options?: FieldOption[] | null
-  conditions?: Record<string, unknown> | null
-  validation?: Record<string, unknown> | null
-}
+import EventQrPanel from '~/components/visitors/EventQrPanel.vue'
 
 type EventRecord = {
   id: string
@@ -40,6 +23,7 @@ const table = useTemplateRef('table')
 
 const selectedEventId = ref('')
 const isFormOpen = ref(false)
+const isQrOpen = ref(false)
 const isDeleteOpen = ref(false)
 const isSubmitting = ref(false)
 const isDeleting = ref(false)
@@ -61,7 +45,7 @@ const { data: events } = await useFetch<EventRecord[]>('/api/events', {
 watch(events, (list) => {
   if (!selectedEventId.value && list?.length) {
     const active = list.find(item => item.isActive) || list[0]
-    selectedEventId.value = active.id
+    if (active) selectedEventId.value = active.id
   }
 }, { immediate: true })
 
@@ -121,6 +105,11 @@ const columns = computed<TableColumn<any>[]>(() => {
       accessorKey: 'registrationId',
       header: 'ID Registrasi',
       cell: ({ row }) => row.original.registrationId || '-'
+    },
+    {
+      accessorKey: 'registeredVia',
+      header: 'Sumber',
+      cell: ({ row }) => row.original.registeredVia === 'qr' ? 'QR' : 'Admin'
     },
     {
       accessorKey: 'createdAt',
@@ -290,7 +279,20 @@ const pagination = ref({
         </template>
 
         <template #right>
-          <UButton icon="i-lucide-refresh-cw" color="neutral" variant="ghost" @click="refresh()" />
+          <UButton
+            icon="i-lucide-refresh-cw"
+            color="neutral"
+            variant="ghost"
+            @click="refresh()"
+          />
+          <UButton
+            icon="i-lucide-qr-code"
+            label="QR Registrasi"
+            color="neutral"
+            variant="outline"
+            :disabled="!selectedEvent"
+            @click="isQrOpen = true"
+          />
           <UButton
             icon="i-lucide-plus"
             label="Tambah"
@@ -389,6 +391,32 @@ const pagination = ref({
     :submitting="isSubmitting"
     @submit="submitVisitor"
   />
+
+  <UModal v-model:open="isQrOpen">
+    <template #content>
+      <UCard>
+        <template #header>
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold">
+              QR Registrasi {{ selectedEvent?.name }}
+            </h3>
+            <UButton
+              icon="i-lucide-x"
+              color="neutral"
+              variant="ghost"
+              square
+              @click="isQrOpen = false"
+            />
+          </div>
+        </template>
+        <EventQrPanel
+          v-if="selectedEvent"
+          :slug="selectedEvent.slug"
+          :event-name="selectedEvent.name"
+        />
+      </UCard>
+    </template>
+  </UModal>
 
   <UModal v-model:open="isDeleteOpen">
     <template #content>

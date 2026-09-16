@@ -1,15 +1,15 @@
 import * as Sentry from "@sentry/nuxt";
 import {
-  createVisitorForEvent,
+  findVisitorByDeviceId,
   getEventWithFields,
-  visitorHttpError,
-  VisitorConflictError,
+  normalizeDeviceId,
   VisitorValidationError,
+  visitorHttpError,
 } from "../../../utils/validateVisitorPayload";
 
 export default defineEventHandler(async (event) => {
   const slug = getRouterParam(event, "slug");
-  const body = await readBody(event).catch(() => ({}));
+  const query = getQuery(event);
 
   if (!slug) {
     throw createError({
@@ -20,6 +20,10 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
+    const rawDeviceId = Array.isArray(query.deviceId)
+      ? query.deviceId[0]
+      : query.deviceId;
+    const deviceId = normalizeDeviceId(rawDeviceId, true);
     const eventRecord = await getEventWithFields({ slug });
 
     if (!eventRecord) {
@@ -30,29 +34,22 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    if (!eventRecord.isActive) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: "Bad Request",
-        message: "Event tidak aktif.",
-      });
+    const existing = deviceId
+      ? await findVisitorByDeviceId(eventRecord.id, deviceId)
+      : null;
+
+    if (!existing) {
+      return { registered: false };
     }
 
-    const visitor = await createVisitorForEvent(eventRecord, body || {}, {
-      requireDeviceId: true,
-    });
-
-    setResponseStatus(event, 201);
     return {
-      success: true,
-      message: "Konfirmasi kehadiran tercatat.",
-      registrationId: visitor.registrationId,
+      registered: true,
+      registrationId: existing.registrationId,
+      fullName: existing.fullName,
+      submittedAt: existing.submittedAt ?? existing.createdAt,
     };
   } catch (error: unknown) {
-    if (
-      error instanceof VisitorValidationError ||
-      error instanceof VisitorConflictError
-    ) {
+    if (error instanceof VisitorValidationError) {
       const mapped = visitorHttpError(error);
       if (mapped) throw createError(mapped);
     }
@@ -62,11 +59,7 @@ export default defineEventHandler(async (event) => {
     throw createError({
       statusCode: 500,
       statusMessage: "Internal Server Error",
-      message: "Terjadi kesalahan server.",
-      data: {
-        success: false,
-        message: "Terjadi kesalahan server.",
-      },
+      message: "Terjadi kesalahan saat memeriksa status registrasi.",
     });
   }
 });

@@ -82,15 +82,18 @@ model Visitors {
   email          String?   @db.VarChar(255)
   phone          String?   @db.VarChar(255)
   identityNumber String?   @db.VarChar(50)
+  deviceId       String?   @db.VarChar(64)
   payload        Json
   language       String    @db.Char(2)
   submittedAt    DateTime?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
+  @@unique([eventId, deviceId])
   @@index([eventId])
   @@index([email])
   @@index([identityNumber])
+  @@index([deviceId])
 }
 
 model BoothTypes {

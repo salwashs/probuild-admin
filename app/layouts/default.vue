@@ -40,6 +40,14 @@ const links = [[
       open.value = false
     }
   },
+  {
+    label: 'QR Registrasi',
+    icon: 'i-lucide-qr-code',
+    to: '/qr',
+    onSelect: () => {
+      open.value = false
+    }
+  },
   // {
   //   label: 'Booth',
   //   icon: 'i-lucide-land-plot',

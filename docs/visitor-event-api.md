@@ -12,6 +12,8 @@ Dokumentasi API untuk registrasi visitor **dinamis per event**. Setiap event mem
 | Method | Path | Auth | Keterangan |
 |---|---|---|---|
 | `POST` | `/visitor-rsvp` | Publik | RSVP ProBuild INTIM 2026 (shortcut) |
+| `GET` | `/events/:slug` | Publik | Skema form event untuk halaman registrasi QR |
+| `GET` | `/events/:slug/registration?deviceId=` | Publik | Cek apakah perangkat sudah terdaftar |
 | `POST` | `/events/:slug/visitors` | Publik | Registrasi visitor untuk event aktif |
 | `GET` | `/events` | Admin | Daftar event + skema form |
 | `POST` | `/events` | Admin | Buat event baru (+ fields opsional) |
@@ -29,6 +31,8 @@ Spesifikasi field form **ProBuild INTIM 2026** (RSVP tamu undangan): lihat [visi
 
 ### Endpoint publik (tanpa token)
 
+- `GET /api/events/:slug`
+- `GET /api/events/:slug/registration`
 - `POST /api/visitor-rsvp`
 - `POST /api/events/:slug/visitors`
 - `POST /api/exhibitors` *(resource terpisah)*
@@ -97,9 +101,54 @@ Accept: application/json
 
 ---
 
+### GET /events/:slug
+
+Skema form publik untuk halaman `/register/:slug` (QR statis admin).
+
+```http
+GET /events/probuild-intim-2026
+Accept: application/json
+```
+
+**200 OK** — metadata event + `fields` (tanpa `visitorSeq`).
+
+**404 Not Found** — slug tidak ditemukan.
+
+---
+
+### GET /events/:slug/registration
+
+Cek apakah `deviceId` (UUID per perangkat visitor) sudah terdaftar. Dipakai agar visitor yang scan QR lagi tidak mengisi form duplikat.
+
+```http
+GET /events/probuild-intim-2026/registration?deviceId=550e8400-e29b-41d4-a716-446655440000
+Accept: application/json
+```
+
+**200 OK**
+
+```json
+{ "registered": false }
+```
+
+atau
+
+```json
+{
+  "registered": true,
+  "registrationId": "RSVP-2026-00001",
+  "fullName": "Ir. Budi Santoso, M.T.",
+  "submittedAt": "2026-09-16T10:00:00.000Z"
+}
+```
+
+---
+
 ### POST /events/:slug/visitors
 
 Registrasi publik untuk **event mana pun** yang aktif. Body mengikuti skema `EventFormFields` event tersebut.
+
+Halaman QR mengirim `deviceId` (wajib). Satu perangkat hanya boleh mendaftar sekali per event; email dan nomor KTP juga unik per event.
 
 ```http
 POST /events/probuild-intim-2026/visitors
@@ -113,13 +162,15 @@ Accept: application/json
 |---|---|---|
 | `slug` | string | Slug unik event, mis. `probuild-intim-2026` |
 
-**Request body:** object dengan key = `EventFormFields.key` (camelCase). Field wajib/kondisional mengikuti definisi event.
+**Request body:** object dengan key = `EventFormFields.key` (camelCase), plus `deviceId` (UUID) untuk alur QR. Field wajib/kondisional mengikuti definisi event.
 
 **201 Created** — sama dengan `/visitor-rsvp`.
 
 **400 Bad Request** — event tidak aktif.
 
 **404 Not Found** — slug tidak ditemukan.
+
+**409 Conflict** — perangkat, email, atau KTP sudah terdaftar. Response bisa berisi `registrationId` lama jika duplikat berasal dari perangkat yang sama.
 
 ---
 
@@ -502,6 +553,7 @@ Duplikat field dengan `uniquePerEvent: true` (email / KTP per event):
 | eventId | UUID (FK → Events) |
 | registrationId | string (unique) |
 | fullName / email / phone / identityNumber | string (nullable, indexed) |
+| deviceId | string (nullable, unik per event) |
 | payload | JSON |
 | language | char(2) |
 | submittedAt | datetime (nullable) |
@@ -524,6 +576,7 @@ Menambah event baru: `POST /events` dengan `slug` dan `fields` baru — tidak pe
 
 ## Catatan implementasi
 
+- **QR registrasi:** admin menampilkan QR statis ke `/register/:slug`. Visitor scan, mengisi field event, lalu terkunci per perangkat (`deviceId`) serta email/KTP unik.
 - **CORS:** diizinkan untuk `/api/**` (lihat `nuxt.config.ts` dan `server/middleware/cors.ts`).
 - **Rate limiting:** disarankan untuk endpoint publik (belum diimplementasikan).
 - **Notifikasi:** WhatsApp/email setelah RSVP belum terintegrasi (rekomendasi terpisah).
