@@ -676,8 +676,8 @@ export async function createVisitorForEvent(
     Boolean(options?.requireDeviceId),
   );
 
-  await assertUniquePerEvent(event.fields, event.id, payload);
   await assertDeviceAvailable(event.id, deviceId);
+  await assertUniquePerEvent(event.fields, event.id, payload);
 
   const indexed = extractIndexedFields(event.fields, payload);
   const language = asString(payload.language) || "id";
