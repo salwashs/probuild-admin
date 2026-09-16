@@ -14,14 +14,18 @@ export default defineEventHandler((event) => {
   }
 
   // Skip auth for public API endpoints (visitor RSVP / exhibitor registration from external forms)
-  const path = url.split("?")[0];
+  const path = url.split("?")[0] || "";
   const method = getMethod(event);
   const isPublicPost =
     method === "POST" &&
     (path === "/api/visitor-rsvp" ||
       path.startsWith("/api/exhibitors") ||
       /^\/api\/events\/[^/]+\/visitors$/.test(path));
-  if (isPublicPost) {
+  const isPublicEventGet =
+    method === "GET" &&
+    (/^\/api\/events\/[^/]+$/.test(path) ||
+      /^\/api\/events\/[^/]+\/registration$/.test(path));
+  if (isPublicPost || isPublicEventGet) {
     return;
   }
 

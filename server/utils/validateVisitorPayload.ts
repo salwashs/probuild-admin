@@ -32,6 +32,7 @@ type Visitors = {
   email: string | null;
   phone: string | null;
   identityNumber: string | null;
+  deviceId: string | null;
   payload: unknown;
   language: string;
   submittedAt: Date | null;
@@ -79,9 +80,12 @@ export type FieldConditions = {
 
 export type IndexedAs = "fullName" | "email" | "phone" | "identityNumber";
 
-const META_KEYS = new Set(["id", "eventId", "eventSlug"]);
+const META_KEYS = new Set(["id", "eventId", "eventSlug", "deviceId"]);
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const DEVICE_ID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export class VisitorValidationError extends Error {
   statusCode = 422;
@@ -96,10 +100,12 @@ export class VisitorValidationError extends Error {
 
 export class VisitorConflictError extends Error {
   statusCode = 409;
+  registrationId?: string;
 
-  constructor(message: string) {
+  constructor(message: string, registrationId?: string) {
     super(message);
     this.name = "VisitorConflictError";
+    this.registrationId = registrationId;
   }
 }
 
@@ -534,6 +540,8 @@ export function flattenVisitor(visitor: Visitors) {
     email: visitor.email,
     phone: visitor.phone,
     identityNumber: visitor.identityNumber,
+    deviceId: visitor.deviceId,
+    registeredVia: visitor.deviceId ? "qr" : "admin",
     language: visitor.language,
     submittedAt: visitor.submittedAt,
     createdAt: visitor.createdAt,
@@ -551,7 +559,17 @@ export function pickBody(body: unknown): Record<string, unknown> {
   return cleaned;
 }
 
-export function visitorHttpError(error: unknown) {
+export function visitorHttpError(error: unknown): {
+  statusCode: number
+  statusMessage: string
+  message: string
+  data: {
+    success: boolean
+    message: string
+    errors?: Record<string, string[]>
+    registrationId?: string
+  }
+} | null {
   if (error instanceof VisitorValidationError) {
     return {
       statusCode: 422,
@@ -573,6 +591,7 @@ export function visitorHttpError(error: unknown) {
       data: {
         success: false,
         message: error.message,
+        registrationId: error.registrationId,
       },
     };
   }
@@ -580,40 +599,126 @@ export function visitorHttpError(error: unknown) {
   return null;
 }
 
+export function normalizeDeviceId(
+  value: unknown,
+  required = false,
+): string | null {
+  const str = asString(value);
+  if (!str) {
+    if (required) {
+      throw new VisitorValidationError({
+        deviceId: ["Perangkat tidak dikenali. Muat ulang halaman dan coba lagi."],
+      });
+    }
+    return null;
+  }
+
+  if (!DEVICE_ID_RE.test(str)) {
+    throw new VisitorValidationError({
+      deviceId: ["Perangkat tidak dikenali. Muat ulang halaman dan coba lagi."],
+    });
+  }
+
+  return str;
+}
+
+function isUniqueConstraintError(error: unknown, field?: string) {
+  if (
+    !error ||
+    typeof error !== "object" ||
+    !("code" in error) ||
+    (error as { code?: string }).code !== "P2002"
+  ) {
+    return false;
+  }
+
+  if (!field) return true;
+
+  const target = (error as { meta?: { target?: string[] | string } }).meta
+    ?.target;
+  if (Array.isArray(target)) return target.includes(field);
+  if (typeof target === "string") return target.includes(field);
+  return false;
+}
+
+export async function findVisitorByDeviceId(
+  eventId: string,
+  deviceId: string,
+) {
+  return prisma.visitors.findFirst({
+    where: { eventId, deviceId },
+  });
+}
+
+export async function assertDeviceAvailable(
+  eventId: string,
+  deviceId: string | null,
+) {
+  if (!deviceId) return;
+
+  const existing = await findVisitorByDeviceId(eventId, deviceId);
+  if (existing) {
+    throw new VisitorConflictError(
+      "Perangkat ini sudah terdaftar. Setiap visitor hanya dapat mendaftar sekali.",
+      existing.registrationId,
+    );
+  }
+}
+
 export async function createVisitorForEvent(
   event: Events & { fields: EventFormFields[] },
   body: Record<string, unknown>,
+  options?: { requireDeviceId?: boolean },
 ) {
   const payload = validateVisitorPayload(event.fields, pickBody(body));
+  const deviceId = normalizeDeviceId(
+    body.deviceId,
+    Boolean(options?.requireDeviceId),
+  );
+
+  await assertDeviceAvailable(event.id, deviceId);
   await assertUniquePerEvent(event.fields, event.id, payload);
+
   const indexed = extractIndexedFields(event.fields, payload);
   const language = asString(payload.language) || "id";
   const submittedAt = parseSubmittedAt(payload.submittedAt);
 
-  const visitor = await prisma.$transaction(async (tx) => {
-    const updatedEvent = await tx.events.update({
-      where: { id: event.id },
-      data: { visitorSeq: { increment: 1 } },
+  try {
+    const visitor = await prisma.$transaction(async (tx) => {
+      const updatedEvent = await tx.events.update({
+        where: { id: event.id },
+        data: { visitorSeq: { increment: 1 } },
+      });
+
+      const registrationId = formatRegistrationId(
+        updatedEvent.registrationPrefix,
+        updatedEvent.visitorSeq,
+      );
+
+      return tx.visitors.create({
+        data: {
+          eventId: event.id,
+          registrationId,
+          deviceId,
+          payload: JSON.parse(JSON.stringify(payload)),
+          language: language.slice(0, 2),
+          submittedAt,
+          ...indexed,
+        },
+      });
     });
 
-    const registrationId = formatRegistrationId(
-      updatedEvent.registrationPrefix,
-      updatedEvent.visitorSeq,
-    );
-
-    return tx.visitors.create({
-      data: {
-        eventId: event.id,
-        registrationId,
-        payload: JSON.parse(JSON.stringify(payload)),
-        language: language.slice(0, 2),
-        submittedAt,
-        ...indexed,
-      },
-    });
-  });
-
-  return visitor;
+    return visitor;
+  } catch (error: unknown) {
+    if (isUniqueConstraintError(error, "deviceId") && deviceId) {
+      const existing = await findVisitorByDeviceId(event.id, deviceId);
+      throw new VisitorConflictError(
+        "Perangkat ini sudah terdaftar. Setiap visitor hanya dapat mendaftar sekali.",
+        existing?.registrationId,
+      );
+    }
+    throw error;
+  }
 }
 
 export async function updateVisitorForEvent(
