@@ -8,6 +8,12 @@ export default defineNuxtConfig({
 
   css: ["~/assets/css/main.css"],
 
+  runtimeConfig: {
+    public: {
+      visitorRegisterUrl: "",
+    },
+  },
+
   routeRules: {
     "/api/**": {
       // CORS handled by server/middleware/cors.ts

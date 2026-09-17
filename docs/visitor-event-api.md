@@ -17,6 +17,8 @@ Dokumentasi API untuk registrasi visitor **dinamis per event**. Setiap event mem
 | `POST` | `/events` | Admin | Buat event baru (+ fields opsional) |
 | `PUT` | `/events` | Admin | Ubah event (+ replace fields opsional) |
 | `GET` | `/visitors?eventId=` | Admin | Daftar visitor (payload di-flatten) |
+| `GET` | `/visitors/lookup?registrationId=` | Admin | Cari visitor by ID registrasi |
+| `POST` | `/visitors/check-in` | Admin | Check-in visitor (scan QR) |
 | `POST` | `/visitors` | Admin | Tambah visitor manual |
 | `PUT` | `/visitors` | Admin | Edit visitor |
 | `DELETE` | `/visitors` | Admin | Hapus visitor |
@@ -61,9 +63,9 @@ Events (1) ──< EventFormFields (skema form per event)
 
 - **`Events`**: metadata event (`slug`, `registrationPrefix`, `visitorSeq`, …).
 - **`EventFormFields`**: definisi field form (type, validasi, kondisi, opsi enum).
-- **`Visitors`**: jawaban form disimpan di `payload` (JSON). Kolom `fullName`, `email`, `phone`, `identityNumber` diisi otomatis dari field yang punya `indexAs`.
+- **`Visitors`**: jawaban form disimpan di `payload` (JSON). Kolom `fullName`, `email`, `phone`, `identityNumber` diisi otomatis dari field yang punya `indexAs`. Kolom `checkedInAt` diisi saat check-in di pintu acara.
 
-`registrationId` digenerate otomatis: `{registrationPrefix}-{seq 5 digit}`, contoh `RSVP-2026-00042`.
+`registrationId` digenerate otomatis: `{registrationPrefix}-{seq 5 digit}`, contoh `RSVP-2026-00042`. QR registrasi ulang berisi string `registrationId` ini.
 
 ---
 
@@ -256,26 +258,72 @@ Cookie: auth_token=...
     "id": "uuid",
     "eventId": "uuid",
     "registrationId": "RSVP-2026-00001",
-    "fullName": "Ir. Budi Santoso, M.T.",
+    "fullName": "Budi Santoso",
     "email": "budi@contoh.com",
     "phone": "085705852676",
-    "identityNumber": "7371012345670001",
+    "identityNumber": null,
     "language": "id",
-    "submittedAt": "2026-08-31T06:30:00.000Z",
+    "submittedAt": null,
+    "checkedInAt": null,
     "createdAt": "2026-08-31T07:00:00.000Z",
     "updatedAt": "2026-08-31T07:00:00.000Z",
     "position": "Direktur Utama",
     "institution": "PT Contoh Konstruksi",
-    "attendanceStatus": "hadir",
-    "partySize": 1,
-    "eventRoles": ["tamu_undangan"],
-    "specialNeeds": ["tidak_ada"],
-    "termsAccepted": true
+    "whatsapp": "085705852676"
   }
 ]
 ```
 
 Field tambahan di root = isi `payload` sesuai key form event.
+
+---
+
+### GET /visitors/lookup
+
+Cari visitor berdasarkan `registrationId` (hasil scan QR).
+
+```http
+GET /visitors/lookup?registrationId=RSVP-2026-00001
+Cookie: auth_token=...
+```
+
+**200 OK** — visitor flattened + `event` ringkas + `checkedInAt`.
+
+**404 Not Found** — `registrationId` tidak ditemukan.
+
+---
+
+### POST /visitors/check-in
+
+Tandai visitor sudah check-in di pintu acara.
+
+```http
+POST /visitors/check-in
+Content-Type: application/json
+Cookie: auth_token=...
+```
+
+**Request body**
+
+```json
+{
+  "registrationId": "RSVP-2026-00001"
+}
+```
+
+**200 OK** — visitor flattened dengan `checkedInAt` terisi.
+
+**404 Not Found** — `registrationId` tidak ditemukan.
+
+**409 Conflict** — visitor sudah check-in sebelumnya:
+
+```json
+{
+  "success": false,
+  "message": "Visitor sudah check-in.",
+  "visitor": { "...": "data visitor + checkedInAt" }
+}
+```
 
 ---
 
@@ -505,6 +553,7 @@ Duplikat field dengan `uniquePerEvent: true` (email / KTP per event):
 | payload | JSON |
 | language | char(2) |
 | submittedAt | datetime (nullable) |
+| checkedInAt | datetime (nullable) |
 | createdAt / updatedAt | timestamp |
 
 ---
@@ -516,7 +565,7 @@ Duplikat field dengan `uniquePerEvent: true` (email / KTP per event):
 | slug | `probuild-intim-2026` |
 | name | ProBuild INTIM 2026 |
 | registrationPrefix | `RSVP-2026` |
-| fields | 19 field (lihat `prisma/intim-2026-fields.ts`) |
+| fields | 5 field: email, fullName, whatsapp, institution, position (lihat `prisma/intim-2026-fields.ts`) |
 
 Menambah event baru: `POST /events` dengan `slug` dan `fields` baru — tidak perlu ubah kode API.
 
@@ -527,4 +576,6 @@ Menambah event baru: `POST /events` dengan `slug` dan `fields` baru — tidak pe
 - **CORS:** diizinkan untuk `/api/**` (lihat `nuxt.config.ts` dan `server/middleware/cors.ts`).
 - **Rate limiting:** disarankan untuk endpoint publik (belum diimplementasikan).
 - **Notifikasi:** WhatsApp/email setelah RSVP belum terintegrasi (rekomendasi terpisah).
+- **Check-in:** halaman admin `/check-in` scan QR berisi `registrationId`.
+- **QR link pendaftaran:** env `NUXT_PUBLIC_VISITOR_REGISTER_URL` (URL form di site eksternal).
 - **Dashboard:** `GET /api/dashboard/stats` menghitung total visitor semua event.

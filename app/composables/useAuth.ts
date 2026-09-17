@@ -21,7 +21,9 @@ export const useAuth = () => {
 
   async function fetchUser() {
     try {
-      const data = await $fetch<AuthUser>("/api/auth/me");
+      // useRequestFetch forwards cookies during SSR (full page reload)
+      const requestFetch = useRequestFetch();
+      const data = await requestFetch<AuthUser>("/api/auth/me");
       user.value = data;
       return data;
     } catch {

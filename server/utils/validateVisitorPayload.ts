@@ -35,6 +35,7 @@ type Visitors = {
   payload: unknown;
   language: string;
   submittedAt: Date | null;
+  checkedInAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -536,6 +537,7 @@ export function flattenVisitor(visitor: Visitors) {
     identityNumber: visitor.identityNumber,
     language: visitor.language,
     submittedAt: visitor.submittedAt,
+    checkedInAt: visitor.checkedInAt,
     createdAt: visitor.createdAt,
     updatedAt: visitor.updatedAt,
   };

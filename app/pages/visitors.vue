@@ -134,6 +134,22 @@ const columns = computed<TableColumn<any>[]>(() => {
         }).format(new Date(row.original.createdAt))
       }
     },
+    {
+      accessorKey: 'checkedInAt',
+      header: 'Check-in',
+      cell: ({ row }) => {
+        if (!row.original.checkedInAt) {
+          return h('span', { class: 'text-muted' }, 'Belum')
+        }
+        return new Intl.DateTimeFormat('id-ID', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }).format(new Date(row.original.checkedInAt))
+      }
+    },
     ...fieldCols,
     {
       id: 'actions',

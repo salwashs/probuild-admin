@@ -40,6 +40,14 @@ const links = [[
       open.value = false
     }
   },
+  {
+    label: 'Check-in',
+    icon: 'i-lucide-qr-code',
+    to: '/check-in',
+    onSelect: () => {
+      open.value = false
+    }
+  },
   // {
   //   label: 'Booth',
   //   icon: 'i-lucide-land-plot',
