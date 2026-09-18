@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/nuxt";
 import {
   createVisitorForEvent,
   getEventWithFields,
+  softenFieldsForPublicRsvp,
   visitorHttpError,
   VisitorConflictError,
   VisitorValidationError,
@@ -38,7 +39,13 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    const visitor = await createVisitorForEvent(eventRecord, body || {});
+    const visitor = await createVisitorForEvent(
+      {
+        ...eventRecord,
+        fields: softenFieldsForPublicRsvp(eventRecord.fields),
+      },
+      body || {},
+    );
 
     setResponseStatus(event, 201);
     return {
