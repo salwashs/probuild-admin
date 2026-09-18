@@ -24,6 +24,7 @@ export default defineNuxtConfig({
 
   vite: {
     server: {
+      allowedHosts: [".ngrok-free.app", ".ngrok.io", "localhost"],
       watch: {
         ignored: ["**/generated/**", "**/prisma/migrations/**"],
       },

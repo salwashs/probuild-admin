@@ -3,10 +3,11 @@
 Spesifikasi endpoint untuk pendaftaran visitor ProBuild INTIM 2026.
 
 > **Implementasi:** Endpoint ini tersedia sebagai `POST /api/visitor-rsvp` (alias event `probuild-intim-2026`).  
-> Dokumentasi lengkap sistem visitor dinamis: [visitor-event-api.md](./visitor-event-api.md).
+> Dokumentasi lengkap sistem visitor dinamis: [visitor-event-api.md](./visitor-event-api.md).  
+> Definisi field: `prisma/intim-2026-fields.ts`.
 
 **Base URL (production):** `https://admin.probuildintim.com/api`  
-**Base URL (development):** `/api` (proxy Vite → admin)
+**Base URL (development):** `/api` (proxy Vite → admin lokal)
 
 ---
 
@@ -20,19 +21,38 @@ Content-Type: application/json
 Accept: application/json
 ```
 
-#### Request body
+#### Request body — wajib (form expo `/registrasi`)
 
 | Field | Type | Required | Validation | Description |
 |---|---|---|---|---|
 | `email` | string | yes | valid email; unique per event | Email |
 | `fullName` | string | yes | min 3 chars | Nama lengkap |
 | `whatsapp` | string | yes | 8–16 digits; unique per event | Nomor WhatsApp |
-| `institution` | string | yes | min 2 chars | Nama perusahaan/instansi. Kirim `"umum"` jika visitor umum (bukan dari instansi). Jika dari instansi, wajib isi nama nyata. |
-| `position` | string | no | min 2 chars jika diisi | Jabatan (opsional) |
+| `institution` | string | yes | min 2 chars | Nama perusahaan/instansi. Kirim `"umum"` jika visitor umum. |
+| `termsAccepted` | boolean | yes | must be `true` | Persetujuan ketentuan |
+| `language` | enum | yes | `id` \| `en` | Bahasa form |
+
+#### Request body — opsional
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `position` | string | no | Jabatan (min 2 jika diisi) |
+| `institutionAddress` | string | no | Alamat instansi |
+| `identityNumber` | string | no | KTP 16 digit; unique jika diisi |
+| `partySize` | number | no | Jumlah rombongan 1–10 |
+| `groupMembers` | array | no | Anggota rombongan (jika partySize > 1) |
+| `attendanceStatus` | enum | no | `hadir` \| `diwakilkan` \| `berhalangan` |
+| `delegateName` / `delegatePosition` | string | no | Wajib jika `attendanceStatus = diwakilkan` |
+| `eventRoles` / `eventRolesOther` | array / string | no | Peran acara |
+| `specialNeeds` | array | no | Kebutuhan khusus |
+| `notes` | string | no | Catatan panitia |
+| `submittedAt` | string | no | ISO timestamp klien |
+
+Field opsional yang kosong **tidak perlu dikirim**; validasi melewati field tersebut.
 
 ---
 
-## Example request — visitor dari instansi
+## Example request — form expo (minimal)
 
 ```json
 {
@@ -40,7 +60,9 @@ Accept: application/json
   "fullName": "Budi Santoso",
   "whatsapp": "085705852676",
   "institution": "PT Contoh Konstruksi",
-  "position": "Direktur Utama"
+  "position": "Direktur Utama",
+  "termsAccepted": true,
+  "language": "id"
 }
 ```
 
@@ -51,11 +73,13 @@ Accept: application/json
   "email": "ani@email.com",
   "fullName": "Ani Wijaya",
   "whatsapp": "081234567890",
-  "institution": "umum"
+  "institution": "umum",
+  "termsAccepted": true,
+  "language": "id"
 }
 ```
 
-Pada form frontend: jika visitor memilih "umum", field nama instansi boleh dikosongkan di UI, tetapi **body API harus mengirim** `"institution": "umum"`.
+Pada form: jika visitor memilih "umum", UI mengosongkan nama instansi, tetapi body API mengirim `"institution": "umum"`.
 
 ---
 
@@ -71,7 +95,7 @@ Pada form frontend: jika visitor memilih "umum", field nama instansi boleh dikos
 }
 ```
 
-Setelah `201`, frontend eksternal harus menampilkan **QR code** yang isinya string `registrationId` (contoh `RSVP-2026-00042`). QR ini dipakai untuk registrasi ulang / check-in di pintu acara.
+Setelah `201`, frontend menampilkan **QR code** berisi string `registrationId` untuk check-in.
 
 ### 422 Unprocessable Entity
 
@@ -88,7 +112,7 @@ Setelah `201`, frontend eksternal harus menampilkan **QR code** yang isinya stri
 
 ### 409 Conflict
 
-Digunakan jika email atau WhatsApp sudah terdaftar untuk event yang sama:
+Email atau WhatsApp sudah terdaftar untuk event yang sama:
 
 ```json
 {
@@ -97,37 +121,19 @@ Digunakan jika email atau WhatsApp sudah terdaftar untuk event yang sama:
 }
 ```
 
-### 500 Internal Server Error
-
-```json
-{
-  "success": false,
-  "message": "Terjadi kesalahan server."
-}
-```
-
 ---
 
-## QR & check-in (kontrak frontend eksternal)
+## QR & check-in
 
-1. **QR link pendaftaran** — encode URL halaman form di site eksternal (mis. konstruksi-expo). Admin menampilkan QR yang sama dari env `NUXT_PUBLIC_VISITOR_REGISTER_URL`.
-2. **QR setelah submit** — encode `registrationId` dari response 201 (teks mentah, bukan URL).
-3. Admin scan QR di halaman Check-in → `POST /api/visitors/check-in` dengan `{ "registrationId": "..." }` (lihat [visitor-event-api.md](./visitor-event-api.md)).
+1. **QR link pendaftaran** — URL form (mis. `http://localhost:5173/registrasi` lokal / production domain).
+2. **QR setelah submit** — encode `registrationId` (teks mentah).
+3. Admin check-in → `POST /api/visitors/check-in` dengan `{ "registrationId": "..." }`.
 
 ---
 
 ## Backend notes
 
-- Endpoint aktif: `POST /api/visitor-rsvp` — tanpa auth, terikat event `probuild-intim-2026`.
-- Alternatif generik: `POST /api/events/probuild-intim-2026/visitors` (body sama).
-- `registrationId` unik digenerate otomatis (`RSVP-2026-00001`, …).
-- Unique per event: `email`, `whatsapp`.
-- CORS: izinkan origin frontend production.
-- Manajemen visitor & check-in admin: lihat [visitor-event-api.md](./visitor-event-api.md).
-
----
-
-## Database schema
-
-Skema aktual memakai tabel `Events`, `EventFormFields`, dan `Visitors` (payload JSON).  
-Detail lengkap: [visitor-event-api.md#database-schema](./visitor-event-api.md#database-schema).
+- `POST /api/visitor-rsvp` — tanpa auth, event `probuild-intim-2026`.
+- Alternatif: `POST /api/events/probuild-intim-2026/visitors`.
+- Sync definisi field (tanpa hapus Visitors): `npx tsx prisma/sync-intim-fields.ts`.
+- Unique per event: `email`, `whatsapp` (dan `identityNumber` jika diisi).

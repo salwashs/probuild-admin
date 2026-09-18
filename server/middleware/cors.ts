@@ -1,7 +1,9 @@
 const ALLOWED_ORIGIN_PATTERNS = [
   /^https:\/\/([a-z0-9-]+\.)*probuildintim\.com$/,
   /^http:\/\/localhost(:\d+)?$/,
-  /^http:\/\/127\.0\.0\.1(:\d+)?$/
+  /^http:\/\/127\.0\.0\.1(:\d+)?$/,
+  /^https:\/\/[a-z0-9-]+\.ngrok-free\.app$/,
+  /^https:\/\/[a-z0-9-]+\.ngrok\.io$/,
 ]
 
 function isAllowedOrigin(origin: string) {
