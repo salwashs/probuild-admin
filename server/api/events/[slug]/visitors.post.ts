@@ -7,6 +7,7 @@ import {
   VisitorConflictError,
   VisitorValidationError,
 } from "../../../utils/validateVisitorPayload";
+import { sendVisitorQrEmail } from "../../../utils/sendVisitorQrEmail";
 
 export default defineEventHandler(async (event) => {
   const slug = getRouterParam(event, "slug");
@@ -47,11 +48,22 @@ export default defineEventHandler(async (event) => {
       body || {},
     );
 
+    const emailSent = visitor.email
+      ? await sendVisitorQrEmail({
+          to: visitor.email,
+          fullName: visitor.fullName,
+          registrationId: visitor.registrationId,
+          eventName: eventRecord.name,
+          language: visitor.language,
+        })
+      : false;
+
     setResponseStatus(event, 201);
     return {
       success: true,
       message: "Konfirmasi kehadiran tercatat.",
       registrationId: visitor.registrationId,
+      emailSent,
     };
   } catch (error: unknown) {
     if (

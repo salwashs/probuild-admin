@@ -575,7 +575,7 @@ Menambah event baru: `POST /events` dengan `slug` dan `fields` baru — tidak pe
 
 - **CORS:** diizinkan untuk `/api/**` (lihat `nuxt.config.ts` dan `server/middleware/cors.ts`).
 - **Rate limiting:** disarankan untuk endpoint publik (belum diimplementasikan).
-- **Notifikasi:** WhatsApp/email setelah RSVP belum terintegrasi (rekomendasi terpisah).
+- **Notifikasi:** setelah RSVP, email berisi QR `registrationId` dikirim via SMTP (`SMTP_*` env). Kegagalan email tidak membatalkan registrasi (`emailSent` di response).
 - **Check-in:** halaman admin `/check-in` scan QR berisi `registrationId`.
 - **QR link pendaftaran:** env `NUXT_PUBLIC_VISITOR_REGISTER_URL` (URL form di site eksternal).
-- **Dashboard:** `GET /api/dashboard/stats` menghitung total visitor semua event.
+- **PDF QR:** form expo menyediakan unduh PDF dari modal sukses.- **Dashboard:** `GET /api/dashboard/stats` menghitung total visitor semua event.

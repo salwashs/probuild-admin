@@ -94,11 +94,26 @@ Pada form: jika visitor memilih "umum", UI mengosongkan nama instansi, tetapi bo
 {
   "success": true,
   "message": "Konfirmasi kehadiran tercatat.",
-  "registrationId": "RSVP-2026-00042"
+  "registrationId": "RSVP-2026-00042",
+  "emailSent": true
 }
 ```
 
-Setelah `201`, frontend menampilkan **QR code** berisi string `registrationId` untuk check-in.
+Setelah `201`, frontend menampilkan **QR code** berisi string `registrationId` untuk check-in, plus tombol unduh PDF. Jika SMTP terkonfigurasi, email berisi QR juga dikirim ke alamat visitor (`emailSent: true/false`).
+
+### Email QR (SMTP)
+
+Env di server admin (contoh Hostinger):
+
+```env
+SMTP_HOST=smtp.hostinger.com
+SMTP_PORT=465
+SMTP_USER=noreply@probuildintim.com
+SMTP_PASS=...
+SMTP_FROM="ProBuild INTIM <noreply@probuildintim.com>"
+```
+
+Tanpa env lengkap, RSVP tetap `201` dengan `emailSent: false`. Kegagalan kirim email tidak membatalkan registrasi.
 
 ### 422 Unprocessable Entity
 
