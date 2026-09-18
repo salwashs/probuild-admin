@@ -44,6 +44,11 @@ export default defineEventHandler(async (event) => {
       },
     });
 
+    const visitorsBefore = await prisma.visitors.count({
+      where: { eventId: intimEvent.id },
+    });
+
+    // Hanya definisi form — bukan data pendaftar.
     await prisma.eventFormFields.deleteMany({
       where: { eventId: intimEvent.id },
     });
@@ -75,20 +80,30 @@ export default defineEventHandler(async (event) => {
       })),
     });
 
+    const visitorsAfter = await prisma.visitors.count({
+      where: { eventId: intimEvent.id },
+    });
+
+    if (visitorsAfter !== visitorsBefore) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: "Internal Server Error",
+        message:
+          "Sync dibatalkan: jumlah Visitors berubah. Field sync tidak boleh menyentuh data pendaftar.",
+      });
+    }
+
     const fields = await prisma.eventFormFields.findMany({
       where: { eventId: intimEvent.id },
       orderBy: { sortOrder: "asc" },
       select: { key: true, required: true, showInTable: true },
     });
 
-    // #region agent log
-    fetch('http://127.0.0.1:7366/ingest/b4c9394e-995b-4ebb-be2d-e3f30facecf0',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'a40deb'},body:JSON.stringify({sessionId:'a40deb',runId:'post-fix',hypothesisId:'A',location:'sync-intim-fields.post.ts',message:'Synced intim fields',data:{fieldCount:fields.length,required:fields.filter(f=>f.required).map(f=>f.key)},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
-
     return {
       success: true,
-      message: "EventFormFields synced. Visitors data tidak dihapus.",
+      message: "EventFormFields synced. Visitors data tidak diubah/dihapus.",
       eventId: intimEvent.id,
+      visitorsPreserved: visitorsAfter,
       fieldCount: fields.length,
       required: fields.filter((f) => f.required).map((f) => f.key),
       showInTable: fields.filter((f) => f.showInTable).map((f) => f.key),

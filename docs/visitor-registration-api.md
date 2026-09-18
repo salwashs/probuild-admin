@@ -29,6 +29,7 @@ Accept: application/json
 | `fullName` | string | yes | min 3 chars | Nama lengkap |
 | `whatsapp` | string | yes | 8–16 digits; unique per event | Nomor WhatsApp |
 | `institution` | string | yes | min 2 chars | Nama perusahaan/instansi. Kirim `"umum"` jika visitor umum. |
+| `domisili` | string | yes | min 2 chars | Domisili (kota/kabupaten). Di skema admin opsional agar data lama aman. |
 | `termsAccepted` | boolean | yes | must be `true` | Persetujuan ketentuan |
 | `language` | enum | yes | `id` \| `en` | Bahasa form |
 
@@ -60,6 +61,7 @@ Field opsional yang kosong **tidak perlu dikirim**; validasi melewati field ters
   "fullName": "Budi Santoso",
   "whatsapp": "085705852676",
   "institution": "PT Contoh Konstruksi",
+  "domisili": "Surabaya",
   "position": "Direktur Utama",
   "termsAccepted": true,
   "language": "id"
@@ -74,6 +76,7 @@ Field opsional yang kosong **tidak perlu dikirim**; validasi melewati field ters
   "fullName": "Ani Wijaya",
   "whatsapp": "081234567890",
   "institution": "umum",
+  "domisili": "Jakarta Selatan",
   "termsAccepted": true,
   "language": "id"
 }
@@ -135,5 +138,5 @@ Email atau WhatsApp sudah terdaftar untuk event yang sama:
 
 - `POST /api/visitor-rsvp` — tanpa auth, event `probuild-intim-2026`.
 - Alternatif: `POST /api/events/probuild-intim-2026/visitors`.
-- Sync definisi field (tanpa hapus Visitors): `npx tsx prisma/sync-intim-fields.ts`.
+- Sync definisi field (tanpa hapus Visitors): `pnpm prisma:sync-intim` atau `npx tsx prisma/sync-intim-fields.ts`. Hanya mengganti `EventFormFields`; data `Visitors` dihitung sebelum/sesudah dan harus sama.
 - Unique per event: `email`, `whatsapp` (dan `identityNumber` jika diisi).

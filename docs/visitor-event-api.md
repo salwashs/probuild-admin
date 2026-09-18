@@ -565,7 +565,7 @@ Duplikat field dengan `uniquePerEvent: true` (email / KTP per event):
 | slug | `probuild-intim-2026` |
 | name | ProBuild INTIM 2026 |
 | registrationPrefix | `RSVP-2026` |
-| fields | 19 field (lihat `prisma/intim-2026-fields.ts`). Wajib untuk form expo: `fullName`, `email`, `whatsapp`, `institution`, `termsAccepted`, `language`. Sisanya opsional. Kolom tabel: field dengan `showInTable` (termasuk `position`, `partySize`, `attendanceStatus`). Sync: `npx tsx prisma/sync-intim-fields.ts` (tidak menghapus data `Visitors`). |
+| fields | 20 field (lihat `prisma/intim-2026-fields.ts`). Wajib untuk form expo (via `PUBLIC_RSVP_REQUIRED_KEYS`): `fullName`, `email`, `whatsapp`, `institution`, `domisili`, `termsAccepted`, `language`. Di skema admin, `domisili` `required: false` agar data visitor lama aman. Kolom tabel: field dengan `showInTable` (termasuk `position`, `domisili`, `partySize`, `attendanceStatus`). Sync: `npx tsx prisma/sync-intim-fields.ts` (tidak menghapus data `Visitors`). |
 
 Menambah event baru: `POST /events` dengan `slug` dan `fields` baru — tidak perlu ubah kode API.
 

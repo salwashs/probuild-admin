@@ -26,35 +26,6 @@ export default defineEventHandler(async (event) => {
 
     const publicFields = softenFieldsForPublicRsvp(eventRecord.fields);
 
-    // #region agent log
-    fetch("http://127.0.0.1:7366/ingest/b4c9394e-995b-4ebb-be2d-e3f30facecf0", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Debug-Session-Id": "a40deb",
-      },
-      body: JSON.stringify({
-        sessionId: "a40deb",
-        runId: "post-fix",
-        hypothesisId: "A",
-        location: "visitor-rsvp.post.ts:soften",
-        message: "Public RSVP field requirements softened",
-        data: {
-          dbRequired: eventRecord.fields
-            .filter((f) => f.required)
-            .map((f) => f.key),
-          publicRequired: publicFields
-            .filter((f) => f.required)
-            .map((f) => f.key),
-          softened: eventRecord.fields
-            .filter((f) => f.required && !publicFields.find((p) => p.key === f.key)?.required)
-            .map((f) => f.key),
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-    // #endregion
-
     const visitor = await createVisitorForEvent(
       { ...eventRecord, fields: publicFields },
       body || {},
@@ -67,32 +38,6 @@ export default defineEventHandler(async (event) => {
       registrationId: visitor.registrationId,
     };
   } catch (error: unknown) {
-    // #region agent log
-    if (error instanceof VisitorValidationError) {
-      fetch(
-        "http://127.0.0.1:7366/ingest/b4c9394e-995b-4ebb-be2d-e3f30facecf0",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Debug-Session-Id": "a40deb",
-          },
-          body: JSON.stringify({
-            sessionId: "a40deb",
-            runId: "post-fix",
-            hypothesisId: "A",
-            location: "visitor-rsvp.post.ts:validation",
-            message: "Validation failed on visitor-rsvp",
-            data: {
-              errorKeys: Object.keys(error.errors || {}),
-              errors: error.errors,
-            },
-            timestamp: Date.now(),
-          }),
-        },
-      ).catch(() => {});
-    }
-    // #endregion
     if (
       error instanceof VisitorValidationError ||
       error instanceof VisitorConflictError

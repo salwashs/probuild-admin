@@ -654,26 +654,30 @@ export async function getEventWithFields(where: {
   });
 }
 
-/** Fields the public expo form actually collects as required. */
+/** Fields the public expo form collects as required. */
 export const PUBLIC_RSVP_REQUIRED_KEYS = new Set([
   "fullName",
   "email",
   "whatsapp",
   "institution",
+  "domisili",
   "termsAccepted",
   "language",
 ]);
 
 /**
- * Soften EventFormFields for public RSVP so stale production DB
- * (old required:true on KTP/rombongan/etc.) does not reject the short form.
+ * Align EventFormFields with the public expo form contract:
+ * - keys in PUBLIC_RSVP_REQUIRED_KEYS → required true (even if DB optional, e.g. domisili)
+ * - other keys → required false (so stale production required flags do not block RSVP)
  * Admin CRUD still uses raw DB field definitions.
  */
 export function softenFieldsForPublicRsvp<
   T extends { key: string; required: boolean },
 >(fields: T[]): T[] {
   return fields.map((field) => {
-    if (PUBLIC_RSVP_REQUIRED_KEYS.has(field.key)) return field;
+    if (PUBLIC_RSVP_REQUIRED_KEYS.has(field.key)) {
+      return { ...field, required: true };
+    }
     if (!field.required) return field;
     return { ...field, required: false };
   });

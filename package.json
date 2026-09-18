@@ -12,7 +12,8 @@
     "typecheck": "nuxt typecheck",
     "prisma:generate": "dlx prisma generate",
     "prisma:migrate": "dlx prisma migrate",
-    "prisma:seed": "prisma db seed"
+    "prisma:seed": "prisma db seed",
+    "prisma:sync-intim": "tsx prisma/sync-intim-fields.ts"
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.95",

@@ -1,8 +1,16 @@
 /**
  * Sync EventFormFields for probuild-intim-2026 from intim-2026-fields.ts.
- * Does NOT delete Visitors rows — only replaces form field definitions.
  *
- * Usage: npx tsx prisma/sync-intim-fields.ts
+ * SAFE for existing data:
+ * - Only replaces rows in EventFormFields (definisi form).
+ * - NEVER deletes or updates Visitors / payload / check-in.
+ *
+ * Usage:
+ *   pnpm prisma:sync-intim
+ *   npx tsx prisma/sync-intim-fields.ts
+ *
+ * Production (hPanel SSH): jalankan sekali setelah deploy yang mengubah field.
+ * Atau pakai POST /api/events/sync-intim-fields (admin login).
  */
 import { prisma } from "../lib/prisma";
 import { INTIM_2026_EVENT, INTIM_2026_FIELDS } from "./intim-2026-fields";
@@ -25,7 +33,14 @@ async function main() {
     },
   });
 
-  await prisma.eventFormFields.deleteMany({ where: { eventId: intimEvent.id } });
+  const visitorsBefore = await prisma.visitors.count({
+    where: { eventId: intimEvent.id },
+  });
+
+  // Hanya definisi form — bukan data pendaftar.
+  await prisma.eventFormFields.deleteMany({
+    where: { eventId: intimEvent.id },
+  });
   await prisma.eventFormFields.createMany({
     data: INTIM_2026_FIELDS.map((field) => ({
       eventId: intimEvent.id,
@@ -53,6 +68,16 @@ async function main() {
     })),
   });
 
+  const visitorsAfter = await prisma.visitors.count({
+    where: { eventId: intimEvent.id },
+  });
+
+  if (visitorsAfter !== visitorsBefore) {
+    throw new Error(
+      `ABORT: jumlah Visitors berubah (${visitorsBefore} → ${visitorsAfter}). Sync field tidak boleh menyentuh Visitors.`,
+    );
+  }
+
   const fields = await prisma.eventFormFields.findMany({
     where: { eventId: intimEvent.id },
     orderBy: { sortOrder: "asc" },
@@ -62,7 +87,11 @@ async function main() {
   console.log(
     JSON.stringify(
       {
+        success: true,
+        message:
+          "EventFormFields synced. Visitors tidak diubah/dihapus.",
         eventId: intimEvent.id,
+        visitorsPreserved: visitorsAfter,
         fieldCount: fields.length,
         required: fields.filter((f) => f.required).map((f) => f.key),
         showInTable: fields.filter((f) => f.showInTable).map((f) => f.key),
