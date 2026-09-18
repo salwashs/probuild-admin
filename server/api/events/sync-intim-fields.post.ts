@@ -4,6 +4,7 @@ import {
   INTIM_2026_EVENT,
   INTIM_2026_FIELDS,
 } from "../../../prisma/intim-2026-fields";
+import { isAdminOrAboveRole } from "../../utils/roles";
 
 /**
  * POST /api/events/sync-intim-fields
@@ -15,10 +16,7 @@ export default defineEventHandler(async (event) => {
     | { roleName?: string }
     | undefined;
 
-  if (
-    !auth ||
-    (auth.roleName !== "super admin" && auth.roleName !== "admin")
-  ) {
+  if (!auth || !isAdminOrAboveRole(auth.roleName)) {
     throw createError({
       statusCode: 403,
       statusMessage: "Forbidden",

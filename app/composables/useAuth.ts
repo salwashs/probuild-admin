@@ -8,13 +8,19 @@ interface AuthUser {
   };
 }
 
+function normalizeRoleName(name?: string | null) {
+  return name?.trim().toLowerCase() ?? "";
+}
+
 export const useAuth = () => {
   const user = useState<AuthUser | null>("auth-user", () => null);
   const isLoggedIn = computed(() => !!user.value);
   const isSuperAdmin = computed(
-    () => user.value?.role?.name === "super admin"
+    () => normalizeRoleName(user.value?.role?.name) === "super admin"
   );
-  const isAdmin = computed(() => user.value?.role?.name === "admin");
+  const isAdmin = computed(
+    () => normalizeRoleName(user.value?.role?.name) === "admin"
+  );
   const isAdminOrAbove = computed(
     () => isSuperAdmin.value || isAdmin.value
   );
@@ -42,7 +48,10 @@ export const useAuth = () => {
   }
 
   function isRole(roleName: string) {
-    return user.value?.role?.name === roleName;
+    return (
+      normalizeRoleName(user.value?.role?.name) ===
+      normalizeRoleName(roleName)
+    );
   }
 
   return {

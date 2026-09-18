@@ -1,11 +1,16 @@
 import { prisma } from "../../../lib/prisma";
 import * as Sentry from "@sentry/nuxt";
 import bcrypt from "bcryptjs";
+import {
+  isAdminOrAboveRole,
+  isAdminRole,
+  normalizeRoleName,
+} from "../../utils/roles";
 
 export default defineEventHandler(async (event) => {
   // Authorization: only admin or super admin can create users
   const auth = event.context.auth;
-  if (!auth || (auth.roleName !== "super admin" && auth.roleName !== "admin")) {
+  if (!auth || !isAdminOrAboveRole(auth.roleName)) {
     throw createError({
       statusCode: 403,
       statusMessage: "Forbidden",
@@ -41,8 +46,8 @@ export default defineEventHandler(async (event) => {
 
     // Admin cannot assign super admin role
     if (
-      auth.roleName === "admin" &&
-      targetRole.name.toLowerCase() === "super admin"
+      isAdminRole(auth.roleName) &&
+      normalizeRoleName(targetRole.name) === "super admin"
     ) {
       throw createError({
         statusCode: 403,

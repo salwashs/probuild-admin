@@ -1,10 +1,11 @@
 import { prisma } from "../../../lib/prisma";
 import * as Sentry from "@sentry/nuxt";
+import { isSuperAdminRole } from "../../utils/roles";
 
 export default defineEventHandler(async (event) => {
   // Authorization: only super admin can create roles
   const auth = event.context.auth;
-  if (!auth || auth.roleName !== "super admin") {
+  if (!auth || !isSuperAdminRole(auth.roleName)) {
     throw createError({
       statusCode: 403,
       statusMessage: "Forbidden",
