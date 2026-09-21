@@ -295,6 +295,48 @@ const pagination = ref({
   pageIndex: 0,
   pageSize: 10
 })
+
+const isExporting = ref(false)
+
+async function exportCsv() {
+  if (!selectedEventId.value || isExporting.value) return
+
+  isExporting.value = true
+  try {
+    const blob = await $fetch<Blob>('/api/visitors/export', {
+      query: { eventId: selectedEventId.value },
+      responseType: 'blob'
+    })
+
+    const slug = selectedEvent.value?.slug || 'event'
+    const stamp = new Date().toISOString().slice(0, 10).replace(/-/g, '')
+    const filename = `visitors-${slug}-${stamp}.csv`
+
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = filename
+    document.body.appendChild(anchor)
+    anchor.click()
+    anchor.remove()
+    URL.revokeObjectURL(url)
+
+    toast.add({
+      title: 'Export berhasil',
+      description: filename,
+      color: 'success'
+    })
+  } catch (error: unknown) {
+    const err = error as { data?: { message?: string }, message?: string }
+    toast.add({
+      title: 'Export gagal',
+      description: err.data?.message || err.message || 'Tidak dapat mengekspor data visitor.',
+      color: 'error'
+    })
+  } finally {
+    isExporting.value = false
+  }
+}
 </script>
 
 <template>
@@ -307,6 +349,15 @@ const pagination = ref({
 
         <template #right>
           <UButton icon="i-lucide-refresh-cw" color="neutral" variant="ghost" @click="refresh()" />
+          <UButton
+            icon="i-lucide-download"
+            label="Export CSV"
+            color="neutral"
+            variant="outline"
+            :disabled="!selectedEventId"
+            :loading="isExporting"
+            @click="exportCsv"
+          />
           <UButton
             icon="i-lucide-plus"
             label="Tambah"
