@@ -115,6 +115,42 @@ SMTP_FROM="ProBuild INTIM <noreply@probuildintim.com>"
 
 Tanpa env lengkap, RSVP tetap `201` dengan `emailSent: false`. Kegagalan kirim email tidak membatalkan registrasi.
 
+---
+
+## Cek status (form singkat `/cek-registrasi`)
+
+`POST /api/visitor-status` — tanpa auth.
+
+Body: kirim **salah satu** saja:
+
+```json
+{ "email": "budi@contoh.com" }
+```
+
+atau
+
+```json
+{ "whatsapp": "081234567890" }
+```
+
+Response sudah terdaftar:
+
+```json
+{
+  "found": true,
+  "registrationId": "RSVP-2026-00042",
+  "fullName": "Budi Santoso"
+}
+```
+
+Response belum terdaftar:
+
+```json
+{ "found": false }
+```
+
+QR admin (`NUXT_PUBLIC_VISITOR_REGISTER_URL`) mengarah ke `/cek-registrasi`. Belum terdaftar → redirect ke `/registrasi`.
+
 ### 422 Unprocessable Entity
 
 ```json
@@ -143,8 +179,8 @@ Email atau WhatsApp sudah terdaftar untuk event yang sama:
 
 ## QR & check-in
 
-1. **QR link pendaftaran** — URL form (mis. `http://localhost:5173/registrasi` lokal / production domain).
-2. **QR setelah submit** — encode `registrationId` (teks mentah).
+1. **QR cek registrasi** — URL form singkat (mis. `http://localhost:5173/cek-registrasi`).
+2. **QR setelah submit / lookup** — encode `registrationId` (teks mentah).
 3. Admin check-in → `POST /api/visitors/check-in` dengan `{ "registrationId": "..." }`.
 
 ---

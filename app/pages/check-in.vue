@@ -245,7 +245,7 @@ function formatCheckedIn(value: string | Date | null | undefined) {
             color="neutral"
             variant="outline"
             icon="i-lucide-link"
-            label="QR Pendaftaran"
+            label="QR Cek Registrasi"
             @click="showRegisterQr = true"
           />
         </template>
@@ -411,7 +411,7 @@ function formatCheckedIn(value: string | Date | null | undefined) {
         <template #content>
           <div class="flex flex-col items-center gap-4 p-6 text-center">
             <h3 class="text-lg font-semibold">
-              QR Link Pendaftaran
+              QR Cek Registrasi
             </h3>
             <p
               v-if="registerUrl"
@@ -422,14 +422,18 @@ function formatCheckedIn(value: string | Date | null | undefined) {
             <img
               v-if="registerQrDataUrl"
               :src="registerQrDataUrl"
-              alt="QR pendaftaran visitor"
+              alt="QR cek registrasi visitor"
               class="h-64 w-64 rounded-lg bg-white p-2"
             >
             <p
               v-else
               class="text-sm text-muted"
             >
-              Set env <code>NUXT_PUBLIC_VISITOR_REGISTER_URL</code> untuk menampilkan QR.
+              Set env <code>NUXT_PUBLIC_VISITOR_REGISTER_URL</code> ke URL
+              <code>/cek-registrasi</code> untuk menampilkan QR.
+            </p>
+            <p class="text-sm text-muted">
+              Visitor scan QR ini → isi email atau WhatsApp → jika sudah daftar, QR check-in muncul; jika belum, diarahkan ke form registrasi.
             </p>
             <UButton
               color="neutral"

@@ -577,5 +577,7 @@ Menambah event baru: `POST /events` dengan `slug` dan `fields` baru — tidak pe
 - **Rate limiting:** disarankan untuk endpoint publik (belum diimplementasikan).
 - **Notifikasi:** setelah RSVP, email berisi QR `registrationId` dikirim via SMTP (`SMTP_*` env). Kegagalan email tidak membatalkan registrasi (`emailSent` di response).
 - **Check-in:** halaman admin `/check-in` scan QR berisi `registrationId`.
-- **QR link pendaftaran:** env `NUXT_PUBLIC_VISITOR_REGISTER_URL` (URL form di site eksternal).
-- **PDF QR:** form expo menyediakan unduh PDF dari modal sukses.- **Dashboard:** `GET /api/dashboard/stats` menghitung total visitor semua event.
+- **QR link cek registrasi:** env `NUXT_PUBLIC_VISITOR_REGISTER_URL` → `/cek-registrasi` (form singkat email/WA).
+- **PDF QR:** form expo menyediakan unduh PDF dari modal sukses.
+- **Cek status:** `POST /api/visitor-status` publik (email atau whatsapp).
+- **Dashboard:** `GET /api/dashboard/stats` menghitung total visitor semua event.

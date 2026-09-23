@@ -19,6 +19,7 @@ export default defineEventHandler((event) => {
   const isPublicPost =
     method === "POST" &&
     (path === "/api/visitor-rsvp" ||
+      path === "/api/visitor-status" ||
       path.startsWith("/api/exhibitors") ||
       /^\/api\/events\/[^/]+\/visitors$/.test(path));
   if (isPublicPost) {
