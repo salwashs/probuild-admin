@@ -149,7 +149,11 @@ Response belum terdaftar:
 { "found": false }
 ```
 
-QR admin (`NUXT_PUBLIC_VISITOR_REGISTER_URL`) mengarah ke `/cek-registrasi`. Belum terdaftar → redirect ke `/registrasi`.
+QR admin:
+- `NUXT_PUBLIC_VISITOR_LOOKUP_URL` → `/cek-registrasi` (cek email/WA)
+- `NUXT_PUBLIC_VISITOR_REGISTER_URL` → `/registrasi` (form lengkap)
+
+Belum terdaftar dari halaman cek → redirect ke `/registrasi`.
 
 ### 422 Unprocessable Entity
 
@@ -179,9 +183,10 @@ Email atau WhatsApp sudah terdaftar untuk event yang sama:
 
 ## QR & check-in
 
-1. **QR cek registrasi** — URL form singkat (mis. `http://localhost:5173/cek-registrasi`).
-2. **QR setelah submit / lookup** — encode `registrationId` (teks mentah).
-3. Admin check-in → `POST /api/visitors/check-in` dengan `{ "registrationId": "..." }`.
+1. **QR cek registrasi** — URL form singkat (`/cek-registrasi`, env `NUXT_PUBLIC_VISITOR_LOOKUP_URL`).
+2. **QR form registrasi** — URL form lengkap (`/registrasi`, env `NUXT_PUBLIC_VISITOR_REGISTER_URL`).
+3. **QR setelah submit / lookup** — encode `registrationId` (teks mentah).
+4. Admin check-in → `POST /api/visitors/check-in` dengan `{ "registrationId": "..." }`.
 
 ---
 

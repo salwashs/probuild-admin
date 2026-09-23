@@ -36,24 +36,33 @@ const processing = ref(false)
 const manualId = ref('')
 const result = ref<CheckInResult | null>(null)
 const registerQrDataUrl = ref('')
+const lookupQrDataUrl = ref('')
 const showRegisterQr = ref(false)
+const showLookupQr = ref(false)
 
 const registerUrl = computed(() =>
   String(config.public.visitorRegisterUrl || '').trim()
 )
+const lookupUrl = computed(() =>
+  String(config.public.visitorLookupUrl || '').trim()
+)
+
+async function buildQrDataUrl(url: string) {
+  if (!url) return ''
+  try {
+    return await QRCode.toDataURL(url, {
+      width: 280,
+      margin: 2,
+      errorCorrectionLevel: 'M'
+    })
+  } catch {
+    return ''
+  }
+}
 
 onMounted(async () => {
-  if (registerUrl.value) {
-    try {
-      registerQrDataUrl.value = await QRCode.toDataURL(registerUrl.value, {
-        width: 280,
-        margin: 2,
-        errorCorrectionLevel: 'M'
-      })
-    } catch {
-      registerQrDataUrl.value = ''
-    }
-  }
+  registerQrDataUrl.value = await buildQrDataUrl(registerUrl.value)
+  lookupQrDataUrl.value = await buildQrDataUrl(lookupUrl.value)
 })
 
 onBeforeUnmount(async () => {
@@ -240,14 +249,24 @@ function formatCheckedIn(value: string | Date | null | undefined) {
     <template #header>
       <UDashboardNavbar title="Check-in Visitor">
         <template #right>
-          <UButton
-            v-if="registerUrl"
-            color="neutral"
-            variant="outline"
-            icon="i-lucide-link"
-            label="QR Cek Registrasi"
-            @click="showRegisterQr = true"
-          />
+          <div class="flex flex-wrap items-center gap-2">
+            <UButton
+              v-if="lookupUrl"
+              color="neutral"
+              variant="outline"
+              icon="i-lucide-search"
+              label="QR Cek Registrasi"
+              @click="showLookupQr = true"
+            />
+            <UButton
+              v-if="registerUrl"
+              color="neutral"
+              variant="outline"
+              icon="i-lucide-user-plus"
+              label="QR Registrasi"
+              @click="showRegisterQr = true"
+            />
+          </div>
         </template>
       </UDashboardNavbar>
     </template>
@@ -407,11 +426,49 @@ function formatCheckedIn(value: string | Date | null | undefined) {
         </div>
       </div>
 
-      <UModal v-model:open="showRegisterQr">
+      <UModal v-model:open="showLookupQr">
         <template #content>
           <div class="flex flex-col items-center gap-4 p-6 text-center">
             <h3 class="text-lg font-semibold">
               QR Cek Registrasi
+            </h3>
+            <p
+              v-if="lookupUrl"
+              class="break-all text-xs text-muted"
+            >
+              {{ lookupUrl }}
+            </p>
+            <img
+              v-if="lookupQrDataUrl"
+              :src="lookupQrDataUrl"
+              alt="QR cek registrasi visitor"
+              class="h-64 w-64 rounded-lg bg-white p-2"
+            >
+            <p
+              v-else
+              class="text-sm text-muted"
+            >
+              Set env <code>NUXT_PUBLIC_VISITOR_LOOKUP_URL</code> ke URL
+              <code>/cek-registrasi</code>.
+            </p>
+            <p class="text-sm text-muted">
+              Visitor scan → isi email atau WhatsApp → jika sudah daftar, QR check-in muncul; jika belum, diarahkan ke form registrasi.
+            </p>
+            <UButton
+              color="neutral"
+              variant="outline"
+              label="Tutup"
+              @click="showLookupQr = false"
+            />
+          </div>
+        </template>
+      </UModal>
+
+      <UModal v-model:open="showRegisterQr">
+        <template #content>
+          <div class="flex flex-col items-center gap-4 p-6 text-center">
+            <h3 class="text-lg font-semibold">
+              QR Registrasi
             </h3>
             <p
               v-if="registerUrl"
@@ -422,7 +479,7 @@ function formatCheckedIn(value: string | Date | null | undefined) {
             <img
               v-if="registerQrDataUrl"
               :src="registerQrDataUrl"
-              alt="QR cek registrasi visitor"
+              alt="QR registrasi visitor"
               class="h-64 w-64 rounded-lg bg-white p-2"
             >
             <p
@@ -430,10 +487,10 @@ function formatCheckedIn(value: string | Date | null | undefined) {
               class="text-sm text-muted"
             >
               Set env <code>NUXT_PUBLIC_VISITOR_REGISTER_URL</code> ke URL
-              <code>/cek-registrasi</code> untuk menampilkan QR.
+              <code>/registrasi</code>.
             </p>
             <p class="text-sm text-muted">
-              Visitor scan QR ini → isi email atau WhatsApp → jika sudah daftar, QR check-in muncul; jika belum, diarahkan ke form registrasi.
+              Visitor scan QR ini untuk membuka form pendaftaran lengkap.
             </p>
             <UButton
               color="neutral"
